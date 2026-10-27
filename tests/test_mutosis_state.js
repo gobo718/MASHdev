@@ -2,7 +2,8 @@
 const fs=require('fs'),vm=require('vm'),assert=require('assert'),{Blob}=require('buffer');
 const root=fs.existsSync(__dirname+'/../lab.html')?'../':'../PATCH_ONLY/';
 const html=fs.readFileSync(__dirname+'/'+root+'lab.html','utf8');
-for(const needle of ['class="left-cell emoji-a"','class="left-cell emoji-b"','class="mutosis-row activate"','class="output-area"','class="output-actions output-actions-top"','class="output-actions output-actions-bottom"','src="mutosis-router.js?v=take6-modular"','src="mutosis-mock-adapters.js?v=take6-modular"','src="lab-mock.js?v=take6-modular"'])assert(html.includes(needle),needle);
+assert(!html.includes('id="mock-status"'),'Obstructing mock status bar must be absent');
+for(const needle of ['class="left-cell emoji-a"','class="left-cell emoji-b"','class="mutosis-row activate"','class="output-area"','class="output-actions output-actions-top"','class="output-actions output-actions-bottom"','src="mutosis-router.js?v=take6-modular"','src="mutosis-mock-adapters.js?v=take6-modular"','src="lab-mock.js?v=take6-barfix1"'])assert(html.includes(needle),needle);
 function boot(scenario){
  class El{
   constructor(key=''){this.key=key;this.children=[];this._html='';this.textContent='';this.disabled=false;this.dataset={};this.handlers={};this.src='';}
@@ -46,16 +47,16 @@ async function run(){
   assert.equal(s.rejections,expectReject,scenario+' rejections');assert.equal(x.getImageCount(),expectImg,scenario+' image count');
   if(scenario===''){
    x.el('.output-actions-top button:first-child').click();
-   assert(x.el('mock-status').textContent.includes('No image saved'));
+   assert(x.el('.machine-screen-placeholder').textContent.includes('No image saved'));
    x.el('.output-actions-bottom button:last-child').click();
-   assert(x.el('mock-status').textContent.includes('Nothing submitted'));
+   assert(x.el('.machine-screen-placeholder').textContent.includes('Nothing submitted'));
    x.el('.output-actions-top button:last-child').click();
-   assert(x.el('mock-status').textContent.includes('not decided'));
+   assert(x.el('.machine-screen-placeholder').textContent.includes('not decided'));
    x.el('.output-actions-bottom button:first-child').click();
    assert.equal(x.diag.snapshot().phase,'idle');assert.equal(x.getImageCount(),0);
   }
   if(scenario==='allfail')assert(x.el('.activate').disabled);
-  if(scenario==='providerfail')assert(x.el('mock-status').textContent.includes('no bonus Token'));
+  if(scenario==='providerfail')assert(x.el('.machine-screen-placeholder').textContent.includes('no bonus Token'));
   results.push(`${scenario||'pass'}: ${s.phase}, attempts=${s.attempts}, rejected=${s.rejections}, displayed=${x.getImageCount()}`);
  }
  console.log('PASS 5 simulated state scenarios, disabled out-of-order, guest save/submit guard, manual retry safeguard, discard');results.forEach(x=>console.log(' ✓',x));

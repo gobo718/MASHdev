@@ -1,12 +1,11 @@
 /* Laboratory mock interaction layer. Does not change the locked 20/50/10/20 grid. */
-.machine-screen-placeholder{font-size:clamp(10px,1vw,16px);padding:18px 10px 4px;line-height:1.28;overflow:hidden;overflow-wrap:anywhere}
+.machine-screen-placeholder{display:block;font-size:clamp(10px,1vw,16px);padding:30px 10px 5px;line-height:1.28;overflow-x:hidden;overflow-y:auto;overflow-wrap:anywhere;white-space:pre-line;text-align:center}
 .machine-screen-placeholder[data-phase="out-of-order"]{background:#ed9f9f;color:#4b0909}
 .machine-screen-placeholder[data-phase="accepted"]{background:#d2f0dc;color:#17462a}
 .machine-screen-placeholder[data-phase="error"]{background:#ffcd94;color:#4c1e00}
 .mock-result{display:block;max-width:100%;max-height:100%;object-fit:contain}
 .output-area{overflow:hidden;position:relative}
 button:disabled{opacity:.55;cursor:not-allowed}
-#mock-status{position:fixed;bottom:var(--game-bar-height);left:0;width:100%;z-index:4000;min-height:23px;max-height:52px;overflow:auto;padding:4px 9px;background:rgba(28,45,50,.95);color:#fff;font:12px/1.25 Arial,sans-serif;text-align:center;pointer-events:none}
 #emoji-picker{border:2px solid #333;border-radius:12px;padding:0;width:min(790px,calc(100vw - 30px));max-height:min(82dvh,740px);background:#fcfaf4;color:#151515;box-shadow:0 12px 35px #1118}
 #emoji-picker::backdrop{background:#161818aa}
 .picker-header{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:#e9e4d8;border-bottom:1px solid #777}

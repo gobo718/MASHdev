@@ -12,7 +12,6 @@ const {routePair,categoryOf}=router;
 const niceCategory=c=>c.replaceAll('_',' ').replace(/\b\w/g,x=>x.toUpperCase());
 const screen=document.querySelector('.machine-screen-placeholder');
 const out=document.querySelector('.output-area');
-const status=document.getElementById('mock-status');
 const picker=document.getElementById('emoji-picker');
 const pickerBody=document.getElementById('picker-body');
 const pickerSlot=document.getElementById('picker-slot');
@@ -27,8 +26,13 @@ const buttons={
 const state={A:null,B:null,phase:'idle',attempts:0,rejections:0,lastResult:null,objectURL:null,run:0,scenario:new URLSearchParams(location.search).get('mockSafety')||'pass',history:[]};
 const scenarios=['pass','second','third','allfail','providerfail'];
 if(!scenarios.includes(state.scenario))state.scenario='pass';
-function note(message){status.textContent=`LOCAL MOCK · ${message}`;state.history.push(message);}
-function setScreen(message){screen.textContent=message;screen.title=message;}
+let screenPrimary='CHOOSE EMOJI A AND B';
+function note(message){
+ const detail=`${screenPrimary}\n${message}`;
+ screen.textContent=detail;screen.title=detail;
+ state.history.push(message);
+}
+function setScreen(message){screenPrimary=message;screen.textContent=message;screen.title=message;}
 function releaseImage(){if(state.objectURL)URL.revokeObjectURL(state.objectURL);state.objectURL=null;out.innerHTML='<div class="output-label">OUTPUT AREA</div>';}
 function present(phase,message){state.phase=phase;screen.dataset.phase=phase;setScreen(message);updateButtons();}
 function updateButtons(){
