@@ -6,6 +6,7 @@
 <title>MASHpedition Laboratory</title>
 <link rel="stylesheet" href="lab.css?v=222">
 <link rel="stylesheet" href="game-bar.css?v=226">
+<link rel="stylesheet" href="lab-mock.css?v=take6">
 </head>
 <body>
 <main class="laboratory" aria-label="Laboratory">
@@ -66,18 +67,6 @@
     </div>
 
     <div class="mutosis-row blank" aria-hidden="true"></div>
-
-    <div class="mutosis-row field-row" aria-label="Fields 5 and 6">
-      <div class="edge-space" aria-hidden="true"></div>
-      <button class="field" type="button">FIELD 5</button>
-      <button class="dial" type="button" aria-label="Field 5 dial"><span></span></button>
-      <div class="dial-gap" aria-hidden="true"></div>
-      <button class="dial" type="button" aria-label="Field 6 dial"><span></span></button>
-      <button class="field" type="button">FIELD 6</button>
-      <div class="edge-space" aria-hidden="true"></div>
-    </div>
-
-    <div class="mutosis-row blank" aria-hidden="true"></div>
   </section>
 
   <section class="agglomerator" aria-label="Chimeric Agglomerator">
@@ -108,6 +97,14 @@
 
 </main>
 <nav class="game-menu-bar" aria-label="Laboratory menu"><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button></nav>
+
+<!-- Mock integration: deliberately keeps v282 layout and original field controls intact. -->
+<div id="mock-status" role="status" aria-live="polite">LOCAL MOCK · No AI provider, account, or reward service connected</div>
+<dialog id="emoji-picker" aria-label="Choose a Mutosis emoji"><div class="picker-header"><h2>Choose Emoji <span id="picker-slot">A</span></h2><button type="button" id="close-picker" aria-label="Close picker">✕</button></div><div class="picker-body" id="picker-body"></div></dialog>
 <script src="game-bar.js?v=226"></script>
+<script src="mutosis-data.js?v=take6"></script>
+<script src="mutosis-router.js?v=take6-modular"></script>
+<script src="mutosis-mock-adapters.js?v=take6-modular"></script>
+<script src="lab-mock.js?v=take6-modular"></script>
 </body>
 </html>
