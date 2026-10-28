@@ -22,6 +22,8 @@
   function stationHref(href,ctx){
     verifiedShape(ctx);
     if(typeof href!=='string' || !href)throw new TypeError('Station path required');
+    if(!STATIONS.some(station=>href===station || href.startsWith(station+'?') || href.startsWith(station+'#')))
+      throw new RangeError('Expected a direct path to a Studio selection room');
     // Reject navigation to a different origin or a nested/unknown location.
     const u=new URL(href,'https://studio.invalid/');
     if(u.origin!=='https://studio.invalid' || !STATIONS.includes(u.pathname.slice(1)))
