@@ -43,9 +43,11 @@ button,.hub-link{
   grid-template-columns:25% 50% 12.5% 12.5%
 }
 .fyc{font-size:1.08em}
+/* Portrait is a physical quarter-turn of the accepted wide map, not a
+   900px horizontal-scrolling landscape board. Exact map cells are unchanged. */
 @media (orientation:portrait){
-  body{overflow-x:auto}
-  .museum-hub{min-width:900px}
+  body{overflow-x:hidden}
+  .museum-hub{min-width:0}
 }
 
 /* v48 — center Common Grounds Cafe label inside its existing Museum Hub box. */
@@ -100,4 +102,38 @@ button,.hub-link{
 .museum-hub{
   width:var(--museum-game-w,100vw);
   height:var(--museum-game-h,calc(100dvh - var(--game-bar-height)));
+}
+
+
+/* 12-07 / 17-07 / 19-03: one authoritative landscape Museum Map.
+   Its finished map turns clockwise 90 degrees in portrait. Text counterturns
+   on its existing label pivots; the plate geometry never reflows. */
+@media (orientation:portrait){
+  .museum-hub{
+    position:absolute;
+    top:0;
+    left:0;
+    width:var(--museum-game-h,calc(100dvh - var(--game-bar-height)));
+    height:var(--museum-game-w,100vw);
+    transform-origin:top left;
+    transform:translateX(var(--museum-game-w,100vw)) rotate(90deg);
+  }
+  .museum-map-label-text{overflow-wrap:anywhere;line-height:1.08;flex-shrink:0}
+  .museum-map-label-copy{display:inline-block;max-width:100%;text-align:center}
+}
+/* Gravity-style swivel lettering: a small settle after actual orientation
+   changes, not a page-load or every-resize animation. Timing remains tunable. */
+.museum-hub.museum-signage-settling .museum-map-label-text{
+  transform-origin:center center;
+  animation:museum-signage-settle 780ms ease-out both;
+}
+@keyframes museum-signage-settle {
+  0%   {transform:rotate(calc(var(--museum-label-angle, 0deg) + 5deg)) translateY(var(--museum-optical-shift, 0px))}
+  30%  {transform:rotate(calc(var(--museum-label-angle, 0deg) - 3deg)) translateY(var(--museum-optical-shift, 0px))}
+  57%  {transform:rotate(calc(var(--museum-label-angle, 0deg) + 1.5deg)) translateY(var(--museum-optical-shift, 0px))}
+  79%  {transform:rotate(calc(var(--museum-label-angle, 0deg) - .5deg)) translateY(var(--museum-optical-shift, 0px))}
+  100% {transform:rotate(var(--museum-label-angle, 0deg)) translateY(var(--museum-optical-shift, 0px))}
+}
+@media (prefers-reduced-motion:reduce){
+  .museum-hub.museum-signage-settling .museum-map-label-text{animation:none}
 }
