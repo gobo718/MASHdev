@@ -1,0 +1,18 @@
+:root{--paper:#eee9df;--panel:#f7f4ed;--line:#4a4741;--ink:#171717;--game-bar-height:37px}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
+.mixer-room{height:calc(100dvh - var(--game-bar-height));overflow-y:auto;max-width:960px;margin:0 auto;padding:clamp(8px,2.2vw,20px)}
+.mixer-heading,.recipe-result{border:1px solid var(--line);background:var(--panel);padding:clamp(10px,2vw,18px)}
+h1{font-size:clamp(20px,4vw,32px);margin:0}
+h2{font-size:clamp(14px,2.2vw,20px);margin:0 0 8px}
+p{line-height:1.4}.mixer-heading p{font-weight:bold;font-size:12px;margin:7px 0 0}
+.primary-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:inherit}
+.primary-buttons button{min-height:52px;font-weight:bold;touch-action:manipulation}
+.primary-buttons button[aria-pressed="true"]{outline:3px solid var(--ink);outline-offset:1px}
+#clear-choice{margin:12px 0;padding:9px 15px}
+.recipe-result{min-height:130px}
+#selected-recipe{font-weight:700;margin:8px 0}
+#recipe-name{font-size:clamp(18px,4vw,26px);font-weight:bold;margin:9px 0}
+#source-note,.scope-note{font-size:12px}
+.scope-note{border-top:1px solid var(--line);padding-top:12px}
