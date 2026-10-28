@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MASHpedition Studio</title>
-<link rel="stylesheet" href="studio.css?v=287">
+<link rel="stylesheet" href="studio.css?v=288">
 <link rel="stylesheet" href="game-bar.css?v=226">
 </head>
 <body>
@@ -57,7 +57,12 @@
         + 6.285 * Math.exp(-0.35 * (fontSize - 8))
         - 3.485 * Math.exp(-0.60 * (fontSize - 11));
       text.style.display = 'inline-block';
-      text.style.transform = `translateY(${opticalShift}px)`;
+      // Counterrotation is applied ONLY to the existing label content.
+      // Keep the validated optical-shift formula intact in both orientations.
+      const portrait = matchMedia('(orientation: portrait)').matches;
+      text.style.transform = portrait
+        ? `rotate(-90deg) translateY(${opticalShift}px)`
+        : `translateY(${opticalShift}px)`;
     });
   }
   function layoutStudioMap(){
