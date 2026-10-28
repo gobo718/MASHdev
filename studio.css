@@ -74,9 +74,11 @@ button,a{font:inherit;color:inherit}
   font-size:clamp(9px,.9vw,13px);
   letter-spacing:.05em;
 }
+/* Portrait must show the complete CONFORMABLE map without a horizontal-swipe
+   requirement. Preserve the accepted grid percentages and Foundry centering. */
 @media (orientation:portrait){
-  body{overflow-x:auto}
-  .studio-shell{min-width:900px}
+  body{overflow-x:hidden}
+  .studio-shell{min-width:0}
 }
 
 
