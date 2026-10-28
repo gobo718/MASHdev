@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MASHpedition Museum Hub</title>
-<link rel="stylesheet" href="styles.css?v=267">
+<link rel="stylesheet" href="styles.css?v=290">
 <link rel="stylesheet" href="game-bar.css?v=226">
 </head>
 <body>
@@ -40,7 +40,12 @@
     if(wrapper) return wrapper;
     wrapper = document.createElement('span');
     wrapper.className = 'museum-map-label-text';
-    while(label.firstChild) wrapper.appendChild(label.firstChild);
+    // Keep nested authored lettering (including the separately sized K)
+    // together as ONE phrase when the entire plaque counterrotates.
+    const copy = document.createElement('span');
+    copy.className = 'museum-map-label-copy';
+    while(label.firstChild) copy.appendChild(label.firstChild);
+    wrapper.appendChild(copy);
     label.appendChild(wrapper);
     return wrapper;
   }
@@ -55,6 +60,7 @@
   }
 
   function centerMuseumMapLabels(){
+    const portrait = matchMedia('(orientation: portrait)').matches;
     labels.forEach(label => {
       const text = ensureTextWrapper(label);
       const fontSize = parseFloat(getComputedStyle(label).fontSize) || 16;
@@ -62,14 +68,36 @@
         1.15
         + 6.285 * Math.exp(-0.35 * (fontSize - 8))
         - 3.485 * Math.exp(-0.60 * (fontSize - 11));
-      text.style.display = 'inline-block';
-      text.style.transform = `translateY(${opticalShift}px)`;
+      // The wrapper is sized to the TRANSPOSED plate interior. After the
+      // quarter-turn it fits the original plate without squeezing the map.
+      // Its child keeps INFORMATION DESK and the optical K together.
+      text.style.display = portrait ? 'flex' : 'inline-block';
+      text.style.alignItems = portrait ? 'center' : '';
+      text.style.justifyContent = portrait ? 'center' : '';
+      text.style.width = portrait ? Math.max(4,label.clientHeight-12)+'px' : '';
+      text.style.height = portrait ? Math.max(4,label.clientWidth-12)+'px' : '';
+      text.style.setProperty('--museum-optical-shift',opticalShift+'px');
+      text.style.setProperty('--museum-label-angle',portrait?'-90deg':'0deg');
+      text.style.transform = portrait
+        ? `rotate(-90deg) translateY(${opticalShift}px)`
+        : `translateY(${opticalShift}px)`;
     });
   }
 
+  let previousMuseumPortrait = matchMedia('(orientation: portrait)').matches;
   function layoutMuseumMap(){
     sizeMuseumMap();
     centerMuseumMapLabels();
+    const portrait = matchMedia('(orientation: portrait)').matches;
+    if(portrait !== previousMuseumPortrait){
+      previousMuseumPortrait = portrait;
+      const map = document.querySelector('.museum-hub');
+      if(map){
+        map.classList.remove('museum-signage-settling');
+        void map.offsetWidth;
+        map.classList.add('museum-signage-settling');
+      }
+    }
   }
 
   layoutMuseumMap();
