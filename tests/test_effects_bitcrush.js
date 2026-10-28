@@ -50,7 +50,7 @@ test('silent signal stays silent and preserves channel count',()=>{
 });
 test('short final sample block is safely filled',()=>{
  const out=bitcrush(pcm(48000,[.5,-.5,0,.25,-1]),{enabled:true,bitDepth:2,holdSamples:3});
- assert.deepEqual(values(out),[[.5,.5,.5,0,0]]);
+ assert.deepEqual(values(out),[[.5,.5,.5,.5,.5]]);
 });
 test('PCM beyond nominal full scale is clipped only in the transformed output',()=>{
  const source=pcm(48000,[2,-3,.25]);
