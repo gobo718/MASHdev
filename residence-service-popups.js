@@ -14,6 +14,7 @@
   let previouslyFocused = null;
   const dialog = document.createElement('dialog');
   dialog.className = 'residence-service-dialog';
+  dialog.setAttribute('aria-modal', 'true');
   const heading = document.createElement('h2');
   heading.id = 'residence-service-title';
   dialog.setAttribute('aria-labelledby', heading.id);
@@ -100,10 +101,17 @@
   }
   function open(service) {
     if (!Object.hasOwn(definitions, service)) throw new RangeError('Unknown Residence popup service');
-    if (dialog.open) dialog.close();
-    previouslyFocused = document.activeElement;
+    // A service can be reopened while the shared popup is already visible.
+    // Do not close/reopen the native dialog: that used to replace the true
+    // Residence launcher with the popup CLOSE button as the return target.
+    const wasOpen = dialog.open;
+    if (!wasOpen) {
+      const active = document.activeElement;
+      previouslyFocused = active && !dialog.contains(active) ? active : null;
+    }
+    dialog.dataset.service = service;
     paint(service);
-    dialog.showModal();
+    if (!wasOpen) dialog.showModal();
     close.focus();
   }
   function setSnapshot(service, data) {
@@ -121,12 +129,12 @@
   ];
   for (const [selector, service] of bindings) {
     const trigger = document.querySelector(selector);
-    if (trigger) trigger.addEventListener('click', () => { dialog.dataset.service = service; open(service); });
+    if (trigger) trigger.addEventListener('click', () => open(service));
   }
   // Gift Dropbox currently has no approved Residence fixture/placement.
   // Expose its popup without inventing a new button or changing the map.
   Object.defineProperty(window, 'MASHResidenceServicePopups', {
-    value: Object.freeze({open: service => { dialog.dataset.service = service; open(service); }, setSnapshot}),
+    value: Object.freeze({open, setSnapshot}),
     configurable: false, writable: false
   });
 })();
