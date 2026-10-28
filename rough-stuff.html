@@ -1,4 +1,38 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>MASHpedition The Rough Stuff</title><link rel="stylesheet" href="rough-stuff.css?v=273"><link rel="stylesheet" href="game-bar.css?v=226"></head><body>
-<main class="rough"><header><strong>THE ROUGH STUFF</strong><div><button class="active" data-view="thumbs">THUMBNAILS</button><button data-view="parade">PARADE MODE</button></div></header><section class="filters"><button>START DATE</button><button>LAST WORKED</button><button>LETTER COUNT</button><button>TOTAL TIME</button><button disabled title="Global Tags come later">TAGS — LATER</button><span></span><button>🗑 TRASH · 1 DAY</button></section>
-<section id="drafts" class="drafts"><article><div class="ref owned">OWNED IMAGE<br>REFERENCE</div><div><b>BLURBLET WIP</b><p>Actual unfinished Blurblet lives here. The image is the reference.</p></div><footer><a href="easel.html">SEND TO EASEL</a><button class="delete">DELETE</button></footer></article><article><div class="ref postit">IMAGE<br>REFERENCE</div><div><b>BLURBLET WIP</b><p>Non-owned image reference uses the crooked Post-it surrogate.</p></div><footer><a href="easel.html">SEND TO EASEL</a><button class="delete">DELETE</button></footer></article><article><div class="ref meme">MEME<br>THUMBNAIL</div><div><b>MEME DRAFT</b><p>Rudimentary saved Meme work in progress.</p></div><footer><a href="easel.html">SEND TO EASEL</a><button class="delete">DELETE</button></footer></article></section><button class="pc">💻 BLURBLOOPS PC</button></main>
-<nav class="game-menu-bar"><a href="studio.html">STUDIO</a><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button></nav><script src="game-bar.js?v=226"></script><script>const d=document.getElementById('drafts');document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-view]').forEach(x=>x.classList.remove('active'));b.classList.add('active');d.classList.toggle('parade',b.dataset.view==='parade')});document.querySelectorAll('.delete').forEach(b=>b.onclick=()=>{b.closest('article').classList.add('deleted');b.textContent='IN TRASH'});</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MASHpedition The Rough Stuff</title>
+<link rel="stylesheet" href="rough-stuff.css?v=284">
+<link rel="stylesheet" href="game-bar.css?v=226">
+</head>
+<body>
+<main class="rough">
+  <header>
+    <strong>THE ROUGH STUFF</strong>
+    <div>
+      <button type="button" class="active" data-view="thumbs" aria-pressed="true">THUMBNAILS</button>
+      <button type="button" data-view="parade" aria-pressed="false">PARADE MODE</button>
+    </div>
+  </header>
+  <section class="filters" aria-label="Sort and Trash">
+    <button type="button" data-sort="start_date" aria-pressed="false">START DATE</button>
+    <button type="button" data-sort="last_worked" aria-pressed="false">LAST WORKED</button>
+    <button type="button" data-sort="letter_count" aria-pressed="false">LETTER COUNT</button>
+    <button type="button" data-sort="total_time" aria-pressed="false">TOTAL TIME</button>
+    <button type="button" disabled title="Global Tags come later">TAGS — LATER</button>
+    <span></span>
+    <button type="button" data-trash aria-pressed="false">🗑 TRASH · 1 DAY</button>
+  </section>
+  <p id="drafts-status" class="drafts-status" role="status" aria-live="polite">Saved drafts are not connected to an account in this build.</p>
+  <section id="drafts" class="drafts" aria-label="Saved Creations"></section>
+  <button type="button" class="pc">💻 BLURBLOOPS PC</button>
+</main>
+<nav class="game-menu-bar"><a href="studio.html">STUDIO</a><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button></nav>
+<script src="game-bar.js?v=226"></script>
+<script src="studio-draft-library.js?v=284"></script>
+<script src="studio-draft-navigation.js?v=283"></script>
+<script src="rough-stuff.js?v=284"></script>
+</body>
+</html>
