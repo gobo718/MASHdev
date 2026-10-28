@@ -34,6 +34,26 @@ assert.ok(match,'Prebaked catalog table is present');
 const entries=JSON.parse(match[1]);
 assert.equal(entries.length,711);
 assert.equal(new Set(entries.map(row=>row[0])).size,711);
+// The completed Pigment Plan / Mix Order sheet is authoritative for gameplay:
+// 500 distinct paints, 211 Mudbucket recipes representing nine Earthy buckets.
+assert.equal(entries.filter(row=>row[7]==='looks').length,500);
+assert.equal(entries.filter(row=>row[7]==='mud').length,211);
+assert.equal(new Set(entries.filter(row=>row[7]==='mud')
+  .map(row=>row[8]+':'+row[9])).size,9);
+assert.ok(entries.filter(row=>row[7]==='looks').every(row=>!row[8]&&!row[9]));
+// The older auditor marked #694 as Earthy; the completed workbook says Paint.
+const corrected=entries.find(row=>row[0]===694);
+assert.deepEqual(corrected,[694,'Blanched Green-Brown',1,2,2,2,0,'looks','','','#A6A67F']);
+const correctedResult=cat.lookupRecipe({r:1,y:2,b:2,w:2,k:0});
+assert.equal(correctedResult.catalogNumber,694);
+assert.equal(correctedResult.reviewState,'looks');
+assert.equal(correctedResult.hex,'#A6A67F');
+// Trim the one source-name whitespace error; color and formula stay identical.
+const twilight=entries.find(row=>row[0]===165);
+assert.deepEqual(twilight,[165,'Twilight Green',0,1,1,0,3,'looks','','','#213B29']);
+assert.equal(cat.lookupRecipe({r:0,y:1,b:1,w:0,k:3}).name,'Twilight Green');
+assert.ok(entries.every(row=>row[1]===row[1].trim()));
+assert.equal(new Set(entries.map(row=>row.slice(2,7).join('/'))).size,711);
 for(const row of entries){
  assert.match(row[10],/^#[0-9A-F]{6}$/);
  assert.equal(cat.lookupRecipe({r:row[2],y:row[3],b:row[4],w:row[5],k:row[6]}).hex,row[10]);
@@ -42,4 +62,4 @@ assert.equal(cat.lookupRecipe({r:500}).status,'not-in-reviewed-catalog');
 assert.throws(()=>cat.lookupFirstTier('RED','RED'));
 assert.throws(()=>cat.lookupRecipe({r:1,y:1,n:1}));
 assert.throws(()=>cat.lookupRecipe({r:1.5,y:1}));
-console.log('Reviewed all 711 prebaked HEX values and first-tier recipe checks passed.');
+console.log('Reviewed 711 HEX values, 500 paints / 211 Mudbucket recipes, and corrected pigment names.');
