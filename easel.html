@@ -8,4 +8,15 @@
 </main>
 <!-- v274: copied verbatim from the established Chromatic Attic room menu-bar structure. -->
 <nav class="game-menu-bar" aria-label="Chromatic Attic menu"><a href="studio.html">STUDIO</a><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button></nav>
+<script src="studio-draft-navigation.js?v=283"></script>
+<script>
+(() => {
+ const nav=globalThis.MASHStudioDraftNavigation;
+ const context=nav?.contextFromSearch(location.search);
+ if(!context)return;
+ document.querySelectorAll('.studio-tools a[href]').forEach(link=>{
+   link.href=nav.stationHref(link.getAttribute('href'),context);
+ });
+})();
+</script>
 <script src="game-bar.js?v=226"></script><script src="easel-fit.js?v=274"></script><script>document.getElementById('delete-project').addEventListener('click',()=>alert('Rudimentary DELETE placeholder.'));</script></body></html>
