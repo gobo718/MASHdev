@@ -9,10 +9,22 @@
     6:{jars:278,buckets:9,cases:8,cap:[40,40,40,40,40,40,40,9],bucketCase:7,note:'278 jars + 9 buckets · 8 cases'},
     7:{jars:500,buckets:9,cases:11,cap:[50,50,50,50,50,50,50,50,50,50,9],bucketCase:10,note:'500 jars + 9 buckets · 11 cases'}
   };
-  const earthy=['#7b6855','#6f775b','#77736c','#66503f','#566049','#5e5b57','#a38b70','#8e9874','#98938b'];
+  // Authoritative game-facing Earthy results from the completed 711-recipe pigment workbook.
+  // Unlock order is three buckets at round 3, three at round 4, and three at round 5.
+  const earthy=[
+    {name:'Medium Earthy Green',hex:'#727358'},
+    {name:'Dark Earthy Green',hex:'#4F4E39'},
+    {name:'Medium Earthy Brown',hex:'#77654D'},
+    {name:'Light Earthy Green',hex:'#9A9775'},
+    {name:'Light Earthy Brown',hex:'#9B886E'},
+    {name:'Dark Earthy Brown',hex:'#524637'},
+    {name:'Light Earthy Grey',hex:'#9E968C'},
+    {name:'Medium Earthy Grey',hex:'#757069'},
+    {name:'Dark Earthy Grey',hex:'#524D48'}
+  ];
   const hue = i => `hsl(${(i*137.508)%360} ${(45+(i*17)%43)}% ${(35+(i*11)%40)}%)`;
   function jar(color,name,large=false){const d=document.createElement('div');d.className=large?'jar':'mini-jar';d.style.setProperty('--c',color);if(large&&name){const l=document.createElement('span');l.className='jar-label';l.textContent=name;d.append(l)}return d}
-  function bucket(i){const d=document.createElement('div');d.className='bucket';d.style.setProperty('--c',earthy[i%earthy.length]);return d}
+  function bucket(i){const d=document.createElement('div');d.className='bucket';const e=earthy[i%earthy.length];d.style.setProperty('--c',e.hex);d.dataset.bucketName=e.name;d.title=e.name;return d}
   function renderBookcase(){
     const b=document.createElement('div');b.className='bookcase';
     const top=document.createElement('div');top.className='shelf';
