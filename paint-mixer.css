@@ -16,3 +16,8 @@ button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(-
 #recipe-name{font-size:clamp(18px,4vw,26px);font-weight:bold;margin:9px 0}
 #source-note,.scope-note{font-size:12px}
 .scope-note{border-top:1px solid var(--line);padding-top:12px}
+
+/* Recipe color is read directly from the audited HEX table; no Mixbox renderer. */
+.result-swatch{width:min(100%,420px);height:clamp(80px,18vh,160px);border:1px solid var(--line);margin:10px 0}
+.result-swatch[hidden]{display:none}
+.recipe-hex{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:clamp(14px,2vw,18px);font-weight:700;margin:5px 0 10px}
