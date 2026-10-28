@@ -43,5 +43,7 @@
   counts[PRIMARY[a]]=1;counts[PRIMARY[b]]=1;
   return lookupRecipe(counts);
  }
- return Object.freeze({count:records.length,KEYS,PRIMARY,lookupRecipe,lookupFirstTier});
+ // Catalog order is a reference order, NOT a verified player unlock sequence.
+ const paintRecords=Object.freeze(records.filter(row=>row.reviewState==='looks'));
+ return Object.freeze({count:records.length,paintRecords,KEYS,PRIMARY,lookupRecipe,lookupFirstTier});
 });
