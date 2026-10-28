@@ -47,3 +47,11 @@ clip-path:polygon(8% 24%,22% 18%,27% 5%,43% 14%,55% 2%,66% 16%,84% 12%,91% 31%,1
   .crystal-row{gap:clamp(10px,3vw,20px)}
   .crystal{width:clamp(30px,9vw,48px)}
 }
+
+
+/* Non-layout-shifting reference inspection; preserve accepted v270 float/glow. */
+.crystal-inspector{position:fixed;z-index:12;top:64px;right:8px;max-width:min(430px,calc(100vw - 16px));padding:7px 10px;background:#231e30e8;border:1px solid #9385b2;color:#f3ecfa;font:600 12px/1.35 Arial,sans-serif;box-shadow:0 3px 10px #0008;pointer-events:none}
+.crystal-inspector[hidden]{display:none}
+.crystal[data-crystal-hex]{cursor:pointer}
+.crystal[data-crystal-hex]:focus-visible{outline:2px solid #fff;outline-offset:3px}
+@media (orientation:landscape) and (max-height:450px){.crystal-inspector{top:44px;font-size:10px}}
