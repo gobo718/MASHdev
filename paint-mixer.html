@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MASHpedition Paint Mixer</title>
+<link rel="stylesheet" href="paint-mixer.css?v=1">
+<link rel="stylesheet" href="game-bar.css?v=226">
+</head>
+<body>
+<main class="mixer-room" aria-label="Paint Mixer">
+  <header class="mixer-heading"><h1>PAINT MIXER</h1><p>FIRST TIER · TWO DIFFERENT PRIMARIES · ONE PART EACH</p></header>
+  <section aria-label="First tier pigment selection">
+    <p class="instruction">Select two primaries to look up the exact recipe in the established pigment catalog.</p>
+    <div id="primaries" class="primary-buttons" role="group" aria-label="Choose two primary colors">
+      <button type="button" data-primary="BLACK" aria-pressed="false">BLACK</button>
+      <button type="button" data-primary="BLUE" aria-pressed="false">BLUE</button>
+      <button type="button" data-primary="RED" aria-pressed="false">RED</button>
+      <button type="button" data-primary="YELLOW" aria-pressed="false">YELLOW</button>
+      <button type="button" data-primary="WHITE" aria-pressed="false">WHITE</button>
+    </div>
+    <button type="button" id="clear-choice">CLEAR SELECTION</button>
+  </section>
+  <section class="recipe-result" aria-live="polite" aria-atomic="true">
+    <h2>RECIPE</h2>
+    <p id="selected-recipe">Choose two primaries.</p>
+    <p id="recipe-name">No recipe selected.</p>
+    <p id="source-note"></p>
+  </section>
+  <p class="scope-note">Catalog lookup only. Mixing, paint ownership, unlock checks, and awards require the authoritative game systems. This screen does not save or grant paint.</p>
+</main>
+<nav class="game-menu-bar" aria-label="Paint Mixer menu">
+<a href="studio.html">STUDIO</a><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button>
+</nav>
+<script src="game-bar.js?v=226"></script>
+<script src="pigment-catalog.js?v=1"></script>
+<script src="paint-mixer.js?v=1"></script>
+</body>
+</html>
