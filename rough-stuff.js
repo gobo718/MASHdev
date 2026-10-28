@@ -19,6 +19,7 @@
   let handlers=Object.freeze({});
   let view='thumbnails',sortBy=null,direction=null,showTrash=false;
   let actionInFlight=false;
+  let notice='';
   const safeId=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(v);
   const create=(tag,className,text)=>{
     const element=document.createElement(tag);
@@ -107,22 +108,22 @@
     }
     trashButton.classList.toggle('active',showTrash);
     trashButton.setAttribute('aria-pressed',String(showTrash));
-    if(!snapshot){statusText('Saved drafts are not connected to an account in this build.');return;}
+    if(!snapshot){statusText(notice||'Saved drafts are not connected to an account in this build.');return;}
     if(showTrash){
       snapshot.trashed.forEach(item=>list.append(renderTrashed(item)));
-      statusText(snapshot.trashed.length?'': 'No items in the supplied Trash snapshot.');
+      statusText(notice||(snapshot.trashed.length?'': 'No items in the supplied Trash snapshot.'));
       return;
     }
     const model=library.projectDrafts(snapshot.drafts,{view,sortBy,direction});
     const original=new Map(snapshot.drafts.map(draft=>[draft.id,draft]));
     model.items.forEach(draft=>list.append(renderDraft(draft,original.get(draft.id))));
-    statusText(model.total?'':'No drafts in the supplied account snapshot.');
+    statusText(notice||(model.total?'':'No drafts in the supplied account snapshot.'));
   }
   async function execute(action,record){
     const callback=action==='open-in-easel'?handlers.openDraft:handlers.moveToTrash;
     if(actionInFlight||typeof callback!=='function')return;
     let intent;
-    try{intent=openIntent(record,action);}catch(e){statusText('Draft action unavailable: '+e.message);return;}
+    try{intent=openIntent(record,action);}catch(e){notice='Draft action unavailable: '+e.message;render();return;}
     actionInFlight=true;render();
     try{
       const response=await callback(intent);
@@ -138,9 +139,9 @@
         // change the displayed draft/Trash membership.
         if(!response||response.applied!==true)
           throw new Error('The account service did not confirm the Trash action.');
-        statusText('Trash action accepted. Awaiting updated account records.');
+        notice='Trash action accepted. Awaiting updated account records.';
       }
-    }catch(e){statusText('Draft action could not finish: '+(e?.message||'account service error'));}
+    }catch(e){notice='Draft action could not finish: '+(e?.message||'account service error');}
     finally{actionInFlight=false;render();} // Rendering state remains server-sourced.
   }
   viewButtons.forEach(b=>b.addEventListener('click',()=>{
@@ -155,7 +156,7 @@
   }));
   trashButton.addEventListener('click',()=>{showTrash=!showTrash;render();});
   window.MASHRoughStuff=Object.freeze({
-    setSnapshot(data){snapshot=data===null?null:validateSnapshot(data);render();},
+    setSnapshot(data){snapshot=data===null?null:validateSnapshot(data);notice='';render();},
     setActionHandlers(next){
       if(!next||typeof next!=='object'||Array.isArray(next)
         ||Object.keys(next).some(key=>!['openDraft','moveToTrash'].includes(key))
