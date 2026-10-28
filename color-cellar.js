@@ -51,10 +51,52 @@
     });
     display.append(wrap);
   }
+
+  // Each stage has one jar size, derived from its narrowest available shelf cell.
+  // Case count/columns may change with the viewport, but an individual jar's
+  // silhouette must not stretch to fill a wider cell or taller shelf.
+  // Buckets are sized separately because they are a distinct physical object.
+  function fitCaseObjects(){
+    const wrap=display.querySelector('.cases');
+    if(!wrap) return;
+    const measure = shelf => {
+      const style=getComputedStyle(shelf);
+      const n=value=>parseFloat(value)||0;
+      const cols=Math.max(1,Number(shelf.style.getPropertyValue('--cols'))||1);
+      const rect=shelf.getBoundingClientRect();
+      const width=Math.max(0,rect.width-n(style.paddingLeft)-n(style.paddingRight)
+        -n(style.borderLeftWidth)-n(style.borderRightWidth)-n(style.columnGap)*(cols-1));
+      const height=Math.max(0,rect.height-n(style.paddingTop)-n(style.paddingBottom)
+        -n(style.borderTopWidth)-n(style.borderBottomWidth));
+      return {width:width/cols,height};
+    };
+    const shelves=[...wrap.querySelectorAll('.case-shelf')];
+    const sizeFor=(selector,maxWidth,heightPerWidth)=>{
+      const slots=shelves.filter(shelf=>shelf.querySelector(selector)).map(measure);
+      if(!slots.length) return null;
+      const width=Math.max(0,Math.min(maxWidth,
+        ...slots.map(slot=>slot.width),
+        ...slots.map(slot=>slot.height/heightPerWidth)));
+      return {width,height:width*heightPerWidth};
+    };
+    const jars=sizeFor('.mini-jar',30,4/3);
+    const buckets=sizeFor('.bucket',36,5/6);
+    const set=(name,value)=>wrap.style.setProperty(name,Math.max(0,value).toFixed(3)+'px');
+    if(jars){set('--mini-jar-w',jars.width);set('--mini-jar-h',jars.height)}
+    if(buckets){set('--bucket-w',buckets.width);set('--bucket-h',buckets.height)}
+  }
+  let sizingFrame=0;
+  function scheduleCaseFit(){
+    if(sizingFrame)cancelAnimationFrame(sizingFrame);
+    sizingFrame=requestAnimationFrame(()=>{sizingFrame=0;fitCaseObjects()});
+  }
+  if(typeof ResizeObserver==='function')new ResizeObserver(scheduleCaseFit).observe(display);
+  addEventListener('resize',scheduleCaseFit,{passive:true});
   function render(stage){
     const s=stages[stage];display.replaceChildren();display.dataset.stage=stage;
     if(stage===1)renderBookcase();else renderCases(stage,s);
     const note=document.createElement('div');note.className='stage-note';note.textContent=s.note;display.append(note);
+    scheduleCaseFit();
   }
   document.querySelectorAll('input[name="stage"]').forEach(r=>r.addEventListener('change',()=>render(Number(r.value))));
   render(1);
