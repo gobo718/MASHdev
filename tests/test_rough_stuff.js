@@ -62,7 +62,8 @@ const tick=()=>new Promise(resolve=>setImmediate(resolve));
  assert.equal(list.classList.contains('parade'),true);
  trash.click();
  assert.equal(list.children.length,1);
- assert.match(list.children[0].children[2].textContent,/10\/28\/2026/);
+ assert.match(list.children[0].children[2].textContent,/IN TRASH · DEADLINE/);
+ assert.equal(MASHStudioDraftLibrary.oneDayTrashDeadline('2026-10-27T10:00:00Z'),'2026-10-28T10:00:00.000Z');
  trash.click();
  assert.throws(()=>window.MASHRoughStuff.setSnapshot({drafts:[draft1,draft1],trashed:[]}));
  assert.throws(()=>window.MASHRoughStuff.setSnapshot({drafts:[draft1],trashed:[
