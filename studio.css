@@ -134,3 +134,22 @@ button,a{font:inherit;color:inherit}
   }
   .studio-middle .studio-zone-text{max-width:calc(30vw - 10px)}
 }
+
+
+/* 13-09 / 17-07 · Weighted-swivel lettering settles after a MAP quarter-turn.
+   The map geometry and optical centering remain unchanged. Only wording rocks.
+   Timing is a first-pass motion treatment, not a locked theatrical duration. */
+.studio-shell.studio-signage-settling .studio-zone-text {
+  transform-origin:center center;
+  animation:studio-signage-settle 780ms ease-out both;
+}
+@keyframes studio-signage-settle {
+  0%   {transform:rotate(calc(var(--studio-label-angle, 0deg) + 5deg)) translateY(var(--studio-optical-shift, 0px))}
+  30%  {transform:rotate(calc(var(--studio-label-angle, 0deg) - 3deg)) translateY(var(--studio-optical-shift, 0px))}
+  57%  {transform:rotate(calc(var(--studio-label-angle, 0deg) + 1.5deg)) translateY(var(--studio-optical-shift, 0px))}
+  79%  {transform:rotate(calc(var(--studio-label-angle, 0deg) - .5deg)) translateY(var(--studio-optical-shift, 0px))}
+  100% {transform:rotate(var(--studio-label-angle, 0deg)) translateY(var(--studio-optical-shift, 0px))}
+}
+@media (prefers-reduced-motion:reduce) {
+  .studio-shell.studio-signage-settling .studio-zone-text {animation:none}
+}
