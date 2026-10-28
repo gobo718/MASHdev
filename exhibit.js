@@ -1430,9 +1430,40 @@
     setView('zoom');
   }
 
+  // The artwork detail view destroys/repaints its source controls on some
+  // returns (especially Thumbnails). Restore the logical *artwork*, not the
+  // stale DOM element, so keyboard browsing resumes at the chosen item.
+  function focusReturnedArtwork(view,number){
+    const art=String(number);
+    const match=(buttons,key='art',value=art)=>[...buttons].find(button=>
+      button && !button.disabled && !button.hidden && button.dataset[key]===value);
+    const byView={
+      thumbnail:()=>match(thumbnailGrid.querySelectorAll('button[data-art]')),
+      overhead:()=>match(overheadSlots),
+      left:()=>match(leftSlots),
+      wall:()=>match(wallSlots),
+      right:()=>match(rightSlotsVisual),
+      endless:()=>match(endlessSlots,'result',String(Number(number)-1)),
+      door:()=>frontDoor
+    };
+    const fallback={
+      thumbnail:thumbnailBtn,
+      overhead:overheadBtn,
+      left:roomBtn,
+      wall:roomBtn,
+      right:roomBtn,
+      endless:endlessBtn,
+      door:frontDoor
+    };
+    const button=byView[view]?.() || fallback[view];
+    if(button && !button.disabled && !button.hidden)
+      button.focus({preventScroll:true});
+  }
+
   function restoreArtworkSource(){
     if(!artworkReturn){
       renderRoom(lastRoomStart);
+      requestAnimationFrame(()=>focusReturnedArtwork(shell.dataset.view,selectedArt));
       return;
     }
 
@@ -1450,6 +1481,11 @@
     else if(target.view==='door') setView('door');
     else if(capabilities.room) renderRoom(target.roomStart);
     else renderThumbnailPage();
+
+    requestAnimationFrame(()=>{
+      // A newer navigation action may already have replaced the source view.
+      if(shell.dataset.view!=='zoom')focusReturnedArtwork(shell.dataset.view,selectedArt);
+    });
   }
 
   function openExpanded(kind){
@@ -2005,6 +2041,21 @@
   artworkCenter.addEventListener('click',()=>openExpanded('art'));
   artworkPlaque.addEventListener('click',()=>openExpanded('plaque'));
   expandBack.addEventListener('click',closeExpanded);
+  // Escape is a keyboard equivalent of the EXISTING BACK controls. Leave the
+  // browser's fullscreen exit and unrelated room/dialog controls alone.
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='Escape' || event.defaultPrevented || event.altKey ||
+       event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if(document.fullscreenElement || document.webkitFullscreenElement ||
+       document.querySelector('dialog[open],[role="dialog"][aria-modal="true"]'))return;
+    if(artworkExpand.classList.contains('is-open')){
+      event.preventDefault();
+      closeExpanded();
+    }else if(shell.dataset.view==='zoom'){
+      event.preventDefault();
+      restoreArtworkSource();
+    }
+  });
 
   function toggleBlurbletPanel(panel,button,otherPanel,otherButton){
     const opening=panel.hidden;
