@@ -29,7 +29,7 @@ for(const [key,[catalogNumber,name,hex]] of expected){
 // All 711 audited recipes have a prebaked six-digit HEX value.
 const fs=require('node:fs'),path=require('node:path');
 const raw=fs.readFileSync(path.join(__dirname,'../pigment-catalog.js'),'utf8');
-const match=raw.match(/const ROWS=(\\[[\\s\\S]*?\\]);/);
+const match=raw.match(/const ROWS=(\[[\s\S]*?\]);/);
 assert.ok(match,'Prebaked catalog table is present');
 const entries=JSON.parse(match[1]);
 assert.equal(entries.length,711);
