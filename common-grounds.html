@@ -291,7 +291,12 @@ INSTALLATION</div>
     for(const i of clockwiseSides){ const a=pts[i],b=pts[(i+1)%n]; const line=document.createElementNS(svgNS,'line');
       line.setAttribute('x1',a.x);line.setAttribute('y1',a.y);line.setAttribute('x2',b.x);line.setAttribute('y2',b.y);line.setAttribute('class','large-side');g.appendChild(line);
       const dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy),nx=-dy/len,ny=dx/len,angle=Math.atan2(dy,dx)*180/Math.PI;
-      for(const t of [.34,.66]){const mx=a.x+dx*t+nx*24,my=a.y+dy*t+ny*24;const box=document.createElementNS(svgNS,'rect');box.setAttribute('x',-30);box.setAttribute('y',-18);box.setAttribute('width',60);box.setAttribute('height',36);box.setAttribute('class','large-art');box.setAttribute('data-art',artNo);box.style.cursor='pointer';box.setAttribute('transform',`translate(${mx} ${my}) rotate(${angle})`);g.appendChild(box);const text=document.createElementNS(svgNS,'text');text.setAttribute('x',mx);text.setAttribute('y',my);text.setAttribute('class','large-num');text.setAttribute('data-art',artNo);text.style.cursor='pointer';text.textContent=artNo++;g.appendChild(text);}
+      for(const t of [.34,.66]){const mx=a.x+dx*t+nx*24,my=a.y+dy*t+ny*24;const box=document.createElementNS(svgNS,'rect');box.setAttribute('x',-30);box.setAttribute('y',-18);box.setAttribute('width',60);box.setAttribute('height',36);box.setAttribute('class','large-art');box.setAttribute('data-art',artNo);
+      // The existing SVG artwork positions must be reachable without touch or a mouse.
+      box.setAttribute('tabindex','0');
+      box.setAttribute('role','button');
+      box.setAttribute('aria-label','View Installation artwork '+artNo);
+      box.style.cursor='pointer';box.setAttribute('transform',`translate(${mx} ${my}) rotate(${angle})`);g.appendChild(box);const text=document.createElementNS(svgNS,'text');text.setAttribute('x',mx);text.setAttribute('y',my);text.setAttribute('class','large-num');text.setAttribute('data-art',artNo);text.style.cursor='pointer';text.textContent=artNo++;g.appendChild(text);}
     }
   }
   drawRoom(); drawLarge();
@@ -340,9 +345,38 @@ INSTALLATION</div>
     // Map click enters the first state in which that artwork is straight/front-facing.
     const i=states.findIndex(st=>st.f&&st.f.includes(art)); return i<0?0:i;
   }
-  function openInstallation(art=1){stateIndex=stateForArt(art);renderInstallation();overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');iv.classList.add('open');iv.setAttribute('aria-hidden','false');}
-  function closeInstallation(){iv.classList.remove('open');iv.setAttribute('aria-hidden','true');}
-  document.getElementById('largeHendecagon').addEventListener('click',e=>{const art=Number(e.target.dataset.art);if(art)openInstallation(art)});
+  let lastOpenedArt=1;
+  function openInstallation(art=1){
+    if(!Number.isInteger(art)||art<1||art>20)return;
+    lastOpenedArt=art;
+    stateIndex=stateForArt(art);renderInstallation();
+    overlay.classList.remove('open');overlay.setAttribute('aria-hidden','true');
+    iv.classList.add('open');iv.setAttribute('aria-hidden','false');
+    document.getElementById('installationRight').focus();
+  }
+  function closeInstallation({restoreFocus=true}={}){
+    iv.classList.remove('open');iv.setAttribute('aria-hidden','true');
+    if(restoreFocus)button.focus();
+  }
+  const largeArtMap=document.getElementById('largeHendecagon');
+  const mapArtFromTarget=target=>{
+    const art=Number(target?.dataset?.art);
+    return Number.isInteger(art)&&art>=1&&art<=20?art:null;
+  };
+  largeArtMap.addEventListener('click',e=>{
+    const art=mapArtFromTarget(e.target);
+    if(art!==null)openInstallation(art);
+  });
+  largeArtMap.addEventListener('keydown',e=>{
+    if(e.defaultPrevented||e.altKey||e.ctrlKey||e.metaKey)return;
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    // Keyboard activation is only for the focused SVG artwork rectangle.
+    if(e.target.getAttribute?.('role')!=='button')return;
+    const art=mapArtFromTarget(e.target);
+    if(art===null)return;
+    e.preventDefault();
+    openInstallation(art);
+  });
   const stepInstallation=delta=>{stateIndex=(stateIndex+delta+states.length)%states.length;renderInstallation()};
   document.getElementById('installationLeft').addEventListener('click',()=>stepInstallation(-1));
   document.getElementById('installationRight').addEventListener('click',()=>stepInstallation(1));
@@ -366,9 +400,43 @@ INSTALLATION</div>
   },{passive:true});
   iv.addEventListener('touchcancel',()=>{swipeTracking=false;swipeStartX=swipeStartY=null},{passive:true});
 
-  document.getElementById('installationMapBack').addEventListener('click',()=>{closeInstallation();openMap()});
-  document.getElementById('installationExit').addEventListener('click',closeInstallation);
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(iv.classList.contains('open'))closeInstallation();else if(overlay.classList.contains('open'))closeMap()}if(iv.classList.contains('open')&&e.key==='ArrowLeft')document.getElementById('installationLeft').click();if(iv.classList.contains('open')&&e.key==='ArrowRight')document.getElementById('installationRight').click();});
+  document.getElementById('installationMapBack').addEventListener('click',()=>{
+    closeInstallation({restoreFocus:false});
+    openMap();
+    const chosen=[...largeArtMap.querySelectorAll('rect[data-art]')]
+      .find(el=>Number(el.dataset.art)===lastOpenedArt);
+    if(chosen)chosen.focus();
+  });
+  document.getElementById('installationExit').addEventListener('click',()=>closeInstallation());
+  document.addEventListener('keydown',e=>{
+    if(e.defaultPrevented)return;
+    if(e.key==='Escape'){
+      if(iv.classList.contains('open')){e.preventDefault();closeInstallation();}
+      else if(overlay.classList.contains('open')){e.preventDefault();closeMap();}
+      return;
+    }
+    if(overlay.classList.contains('open')){
+      if(e.key!=='Tab')return;
+      // Keep focus inside the existing modal map until its CLOSE control is used.
+      const controls=[close,...largeArtMap.querySelectorAll('rect[data-art]')];
+      const first=controls[0],last=controls[controls.length-1];
+      if(e.shiftKey&&document.activeElement===first){
+        e.preventDefault();last.focus();
+      }else if(!e.shiftKey&&document.activeElement===last){
+        e.preventDefault();first.focus();
+      }else if(!controls.includes(document.activeElement)){
+        e.preventDefault();first.focus();
+      }
+      return;
+    }
+    if(!iv.classList.contains('open')||e.repeat||e.altKey||e.ctrlKey||e.metaKey||e.shiftKey)return;
+    if(e.key!=='ArrowLeft'&&e.key!=='ArrowRight')return;
+    if(e.target?.closest?.('input,textarea,select,[contenteditable],[role="textbox"],[role="slider"],[role="combobox"]'))return;
+    const control=document.getElementById(e.key==='ArrowLeft'?'installationLeft':'installationRight');
+    if(!control||control.disabled||control.hidden)return;
+    e.preventDefault();
+    control.click();
+  });
 })();
 </script>
 <nav class="game-menu-bar" aria-label="Concourse menu"><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button></nav>
