@@ -74,8 +74,8 @@ button,a{font:inherit;color:inherit}
   font-size:clamp(9px,.9vw,13px);
   letter-spacing:.05em;
 }
-/* Portrait must show the complete CONFORMABLE map without a horizontal-swipe
-   requirement. Preserve the accepted grid percentages and Foundry centering. */
+/* Portrait navigation guard: no horizontal swipes. The authored Studio
+   landscape geometry turns 90 degrees below rather than being squeezed. */
 @media (orientation:portrait){
   body{overflow-x:hidden}
   .studio-shell{min-width:0}
@@ -109,3 +109,28 @@ button,a{font:inherit;color:inherit}
 
 /* v268 — linked Studio zones retain map-button presentation. */
 .studio-zone{text-decoration:none;}
+
+
+/* Sept 15–16 accepted map rule (13-09/17-07):
+   use the physical long axis for the Studio map's landscape composition.
+   In portrait, a clockwise quarter-turn places the bottom Studio band on
+   screen-left. Labels counterrotate on their existing centering pivots.
+   No transition timing, extra effects, or new layout proportions are chosen. */
+@media (orientation:portrait){
+  .studio-shell{
+    position:absolute;
+    top:0;
+    left:0;
+    width:var(--studio-game-h,calc(100dvh - var(--game-bar-height)));
+    height:var(--studio-game-w,100vw);
+    transform-origin:top left;
+    transform:translateX(var(--studio-game-w,100vw)) rotate(90deg);
+  }
+  /* Keep counter-rotated Foundry labels within the visible band thickness. */
+  .studio-zone-text{
+    max-width:calc(20vw - 10px);
+    overflow-wrap:anywhere;
+    line-height:1.05;
+  }
+  .studio-middle .studio-zone-text{max-width:calc(30vw - 10px)}
+}
