@@ -1,0 +1,23 @@
+/* Development-only checks for 08-09. Never deploy as gameplay content. */
+'use strict';
+const assert=require('node:assert/strict');
+const {progressKey,planProgressDeltas}=require('../progress-delta-planner.js');
+const input={eventId:'event/1',qualifiedTrackIds:['general-writing','newborn-writing','general-writing'],alreadyAppliedKeys:[]};
+const first=planProgressDeltas(input);
+assert.equal(first.pending.length,2);
+assert.equal(first.pending[0].delta,1);
+assert.equal(first.pending[1].delta,1);
+assert.equal(first.requiresServerTransaction,true);
+assert.equal(first.awardsGranted,0);
+const replay=planProgressDeltas({...input,alreadyAppliedKeys:first.pending.map(x=>x.dedupeKey)});
+assert.equal(replay.pending.length,0);
+assert.equal(replay.previouslyApplied.length,2);
+const partial=planProgressDeltas({...input,alreadyAppliedKeys:[first.pending[0].dedupeKey]});
+assert.equal(partial.pending.length,1);
+assert.equal(partial.previouslyApplied.length,1);
+assert.notEqual(progressKey('a:b','c'),progressKey('a','b:c'));
+assert.throws(()=>planProgressDeltas({eventId:'a',qualifiedTrackIds:[''],alreadyAppliedKeys:[]}));
+assert.throws(()=>planProgressDeltas({eventId:'a',qualifiedTrackIds:[],alreadyAppliedKeys:null}));
+assert.throws(()=>progressKey('','t'));
+assert.deepEqual(planProgressDeltas(input),first);
+console.log('Progress delta checks passed (13 assertions).');
