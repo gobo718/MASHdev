@@ -1,5 +1,8 @@
 (() => {
   const display = document.getElementById('display');
+  const inspector = document.getElementById('cellar-inspector');
+  const catalog = globalThis.MASHPigmentCatalog;
+  const previewPaints = catalog?.paintRecords || []; // Reference only; never player inventory.
   const stages = {
     1:{jars:5,buckets:0,cases:0,note:'5 large pigments · bookshelf'},
     2:{jars:15,buckets:0,cases:1,cap:[15],note:'15 jars · 1 case'},
@@ -22,9 +25,30 @@
     {name:'Medium Earthy Grey',hex:'#757069'},
     {name:'Dark Earthy Grey',hex:'#524D48'}
   ];
-  const hue = i => `hsl(${(i*137.508)%360} ${(45+(i*17)%43)}% ${(35+(i*11)%40)}%)`;
-  function jar(color,name,large=false){const d=document.createElement('div');d.className=large?'jar':'mini-jar';d.style.setProperty('--c',color);if(large&&name){const l=document.createElement('span');l.className='jar-label';l.textContent=name;d.append(l)}return d}
-  function bucket(i){const d=document.createElement('div');d.className='bucket';const e=earthy[i%earthy.length];d.style.setProperty('--c',e.hex);d.dataset.bucketName=e.name;d.title=e.name;return d}
+  function inspectable(d,kind,name,hex,number){
+    d.dataset.inspectKind=kind;d.dataset.inspectName=name;d.dataset.inspectHex=hex;
+    if(number!=null)d.dataset.catalogNumber=String(number);
+    d.tabIndex=-1;
+    d.title=name+' · '+hex;
+    if(d.setAttribute){d.setAttribute('role','button');d.setAttribute('aria-label','Inspect '+name+', '+hex)}
+    return d;
+  }
+  function jar(color,name,large=false,number=null){
+    const d=document.createElement('div');d.className=large?'jar':'mini-jar';
+    d.style.setProperty('--c',color);
+    inspectable(d,'paint',name||'Catalog unavailable',color,number);
+    if(large&&name){const l=document.createElement('span');l.className='jar-label';l.textContent=name;d.append(l)}
+    return d;
+  }
+  function jarForIndex(i){
+    const record=previewPaints[i];
+    return record?jar(record.hex,record.name,false,record.catalogNumber):jar('#777777','Reference catalog unavailable');
+  }
+  function bucket(i){
+    const d=document.createElement('div');d.className='bucket';const e=earthy[i%earthy.length];
+    d.style.setProperty('--c',e.hex);d.dataset.bucketName=e.name;
+    return inspectable(d,'earthy',e.name,e.hex,null);
+  }
   function renderBookcase(){
     const b=document.createElement('div');b.className='bookcase';
     const top=document.createElement('div');top.className='shelf';
@@ -44,12 +68,12 @@
       else if(stage===3){
         const bucketHere=ci===1?3:0;
         const jarsHere=capacity-bucketHere;
-        for(let i=0;i<jarsHere;i++)objects.push(jar(hue(jarIndex++)));
+        for(let i=0;i<jarsHere;i++)objects.push(jarForIndex(jarIndex++));
         for(let i=0;i<bucketHere;i++)objects.push(bucket(bucketIndex++));
       } else {
         const remaining=s.jars-jarIndex;
         const count=Math.min(capacity,remaining);
-        for(let i=0;i<count;i++)objects.push(jar(hue(jarIndex++)));
+        for(let i=0;i<count;i++)objects.push(jarForIndex(jarIndex++));
       }
       const shelves = capacity<=15?3:(capacity<=28?4:(capacity<=42?6:5));
       const cols=Math.ceil(capacity/shelves);
@@ -104,10 +128,41 @@
   }
   if(typeof ResizeObserver==='function')new ResizeObserver(scheduleCaseFit).observe(display);
   addEventListener('resize',scheduleCaseFit,{passive:true});
+  function showInspector(target){
+    if(!inspector)return;
+    const name=target.dataset.inspectName, hex=target.dataset.inspectHex;
+    if(!name || !hex)return;
+    const number=target.dataset.catalogNumber;
+    inspector.textContent=(target.dataset.inspectKind==='earthy'?'EARTHY BUCKET':'PAINT')
+      +' · '+name+' · '+hex+(number?' · Source recipe #'+number:'')
+      +' · Reference only; not an owned or equipped color';
+    inspector.hidden=false;
+  }
+  if(typeof display.addEventListener==='function'){
+    display.addEventListener('click',event=>{
+      const item=event.target.closest('[data-inspect-kind]');
+      if(item&&display.contains(item))showInspector(item);
+    });
+    display.addEventListener('keydown',event=>{
+      const item=event.target.closest('[data-inspect-kind]');
+      if(!item||!display.contains(item))return;
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();showInspector(item);return}
+      if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp'].includes(event.key))return;
+      const items=[...display.querySelectorAll('[data-inspect-kind]')];
+      const at=items.indexOf(item),step=['ArrowRight','ArrowDown'].includes(event.key)?1:-1;
+      if(at<0||!items.length)return;
+      event.preventDefault();item.tabIndex=-1;
+      const next=items[(at+step+items.length)%items.length];
+      next.tabIndex=0;next.focus();showInspector(next);
+    });
+  }
   function render(stage){
     const s=stages[stage];display.replaceChildren();display.dataset.stage=stage;
     if(stage===1)renderBookcase();else renderCases(stage,s);
-    const note=document.createElement('div');note.className='stage-note';note.textContent=s.note;display.append(note);
+    const note=document.createElement('div');note.className='stage-note';note.textContent=s.note+' · Reference preview';display.append(note);
+    const first=display.querySelector(stage===1?'.jar':'.mini-jar');
+    if(first)first.tabIndex=0;
+    if(inspector){inspector.hidden=true;inspector.textContent=''}
     scheduleCaseFit();
   }
   document.querySelectorAll('input[name="stage"]').forEach(r=>r.addEventListener('change',()=>render(Number(r.value))));
