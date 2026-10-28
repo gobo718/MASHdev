@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MASHpedition Studio</title>
-<link rel="stylesheet" href="studio.css?v=288">
+<link rel="stylesheet" href="studio.css?v=289">
 <link rel="stylesheet" href="game-bar.css?v=226">
 </head>
 <body>
@@ -57,17 +57,32 @@
         + 6.285 * Math.exp(-0.35 * (fontSize - 8))
         - 3.485 * Math.exp(-0.60 * (fontSize - 11));
       text.style.display = 'inline-block';
-      // Counterrotation is applied ONLY to the existing label content.
-      // Keep the validated optical-shift formula intact in both orientations.
+      // The approved optical adjustment remains exact. The CSS rocking
+      // uses these same values and always finishes at this static transform.
       const portrait = matchMedia('(orientation: portrait)').matches;
+      text.style.setProperty('--studio-optical-shift', opticalShift + 'px');
+      text.style.setProperty('--studio-label-angle', portrait ? '-90deg' : '0deg');
       text.style.transform = portrait
         ? `rotate(-90deg) translateY(${opticalShift}px)`
         : `translateY(${opticalShift}px)`;
     });
   }
+  let priorStudioPortrait = matchMedia('(orientation: portrait)').matches;
   function layoutStudioMap(){
     sizeStudioMap();
     centerStudioLabels();
+    const nowPortrait = matchMedia('(orientation: portrait)').matches;
+    // Restart only for an actual landscape/portrait change, not every
+    // viewport resize, font load or FULL/BROWSER game bar adjustment.
+    if(nowPortrait !== priorStudioPortrait){
+      priorStudioPortrait = nowPortrait;
+      const shell = document.querySelector('.studio-shell');
+      if(shell){
+        shell.classList.remove('studio-signage-settling');
+        void shell.offsetWidth;
+        shell.classList.add('studio-signage-settling');
+      }
+    }
   }
   layoutStudioMap();
   document.fonts?.ready?.then(layoutStudioMap);
