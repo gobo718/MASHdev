@@ -150,7 +150,7 @@ test('One draft or no authorized snapshot hides empty navigation',()=>{
  assert.equal(els['#drafts'].children.length,0);
 });
 test('Latest assets and no mandatory swipe/implicit persistence',()=>{
- assert.match(html,/rough-stuff\.js\?v=293/);
+ assert.match(html,/rough-stuff\.js\?v=300/);
  assert.match(html,/rough-stuff\.css\?v=293/);
  assert.match(css,/\.parade-navigation\[hidden\]\{display:none\}/);
  assert.match(source,/behavior:reduce\?'auto':'smooth'/);
