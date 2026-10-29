@@ -123,7 +123,7 @@
     // Scroll only the existing PARADE strip, not the Museum or a whole page.
     const destination=card.getBoundingClientRect().left-list.getBoundingClientRect().left+list.scrollLeft;
     const reduce=typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
-    list.scrollTo({left:Math.max(0,destination),behavior:reduce?'instant':'smooth'});
+    list.scrollTo({left:Math.max(0,destination),behavior:reduce?'auto':'smooth'});
   }
   function render(){
     list.replaceChildren();
