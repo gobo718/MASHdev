@@ -10,3 +10,15 @@
 .draft-card footer{margin-top:auto}
 .draft-card footer button:disabled{opacity:.55;cursor:not-allowed}
 .trash-card{opacity:.72}
+
+
+/* 06-07 · PARADE has tap/keyboard PREV/NEXT, never requires a horizontal swipe.
+   These controls live outside the artwork strip, preserving its card geometry. */
+.parade-navigation{display:flex;align-items:center;justify-content:center;gap:12px;padding:7px 4px;margin:2px 0 7px;border:1px solid var(--line);background:var(--panel)}
+.parade-navigation[hidden]{display:none}
+.parade-navigation button{min-width:74px;min-height:40px;font-size:12px;padding:7px 12px}
+.parade-navigation button:disabled{opacity:.45;cursor:not-allowed}
+.parade-navigation #parade-position{font:700 12px/1.3 Arial,sans-serif;min-width:66px;text-align:center;white-space:nowrap}
+.drafts.parade{scroll-padding-inline:0;overscroll-behavior-inline:contain}
+.drafts.parade article{flex:0 0 min(72vw,650px);scroll-margin-inline:0}
+@media(max-width:480px){.parade-navigation{gap:6px;padding:5px}.parade-navigation button{min-width:64px}}
