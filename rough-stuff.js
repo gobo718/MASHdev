@@ -14,7 +14,13 @@
   const trashButton=document.querySelector('[data-trash]');
   const sortButtons=[...document.querySelectorAll('[data-sort]')];
   const viewButtons=[...document.querySelectorAll('[data-view]')];
-  if(!library||!list||!status)throw new Error('Rough Stuff cannot initialize without the draft projection');
+  const paradeNav=document.querySelector('#parade-navigation');
+  const paradePrev=document.querySelector('#parade-prev');
+  const paradeNext=document.querySelector('#parade-next');
+  const paradePosition=document.querySelector('#parade-position');
+  if(!library||!list||!status||!paradeNav||!paradePrev||!paradeNext||!paradePosition)
+    throw new Error('Rough Stuff cannot initialize without its draft projection and PARADE navigation');
+  let paradeIndex=0;
   let snapshot=null;
   let handlers=Object.freeze({});
   let view='thumbnails',sortBy=null,direction=null,showTrash=false;
@@ -94,6 +100,29 @@
     // Not an active draft: no unauthenticated restore or direct deletion.
     return article;
   }
+  function updateParadeNavigation(total){
+    const enabled=!!snapshot && view==='parade' && !showTrash && total>1;
+    paradeNav.hidden=!enabled;
+    if(!enabled){paradeIndex=0;paradePosition.textContent='';return;}
+    paradeIndex=Math.max(0,Math.min(paradeIndex,total-1));
+    paradePosition.textContent=(paradeIndex+1)+' OF '+total;
+    paradePrev.disabled=paradeIndex===0;
+    paradeNext.disabled=paradeIndex===total-1;
+  }
+  function moveParade(delta){
+    if(!snapshot || showTrash || view!=='parade')return;
+    const cards=[...list.querySelectorAll('.draft-card')];
+    if(cards.length<2)return;
+    const next=Math.max(0,Math.min(paradeIndex+delta,cards.length-1));
+    if(next===paradeIndex)return;
+    paradeIndex=next;
+    updateParadeNavigation(cards.length);
+    const card=cards[next];
+    // Scroll only the existing PARADE strip, not the Museum or a whole page.
+    const destination=card.getBoundingClientRect().left-list.getBoundingClientRect().left+list.scrollLeft;
+    const reduce=typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    list.scrollTo({left:Math.max(0,destination),behavior:reduce?'instant':'smooth'});
+  }
   function render(){
     list.replaceChildren();
     list.classList.toggle('parade',view==='parade'&&!showTrash);
@@ -108,15 +137,21 @@
     }
     trashButton.classList.toggle('active',showTrash);
     trashButton.setAttribute('aria-pressed',String(showTrash));
-    if(!snapshot){statusText(notice||'Saved drafts are not connected to an account in this build.');return;}
+    if(!snapshot){
+      updateParadeNavigation(0);
+      statusText(notice||'Saved drafts are not connected to an account in this build.');
+      return;
+    }
     if(showTrash){
       snapshot.trashed.forEach(item=>list.append(renderTrashed(item)));
+      updateParadeNavigation(0);
       statusText(notice||(snapshot.trashed.length?'': 'No items in the supplied Trash snapshot.'));
       return;
     }
     const model=library.projectDrafts(snapshot.drafts,{view,sortBy,direction});
     const original=new Map(snapshot.drafts.map(draft=>[draft.id,draft]));
     model.items.forEach(draft=>list.append(renderDraft(draft,original.get(draft.id))));
+    updateParadeNavigation(model.total);
     statusText(notice||(model.total?'':'No drafts in the supplied account snapshot.'));
   }
   async function execute(action,record){
@@ -145,18 +180,33 @@
     finally{actionInFlight=false;render();} // Rendering state remains server-sourced.
   }
   viewButtons.forEach(b=>b.addEventListener('click',()=>{
-    view=b.dataset.view==='parade'?'parade':'thumbnails';showTrash=false;render();
+    const next=b.dataset.view==='parade'?'parade':'thumbnails';
+    if(next!==view)paradeIndex=0;
+    view=next;showTrash=false;render();
   }));
+  paradePrev.addEventListener('click',()=>moveParade(-1));
+  paradeNext.addEventListener('click',()=>moveParade(1));
+  document.addEventListener('keydown',event=>{
+    if(view!=='parade'||showTrash||event.defaultPrevented||event.repeat ||
+       event.altKey||event.ctrlKey||event.metaKey||event.shiftKey ||
+       (event.key!=='ArrowLeft'&&event.key!=='ArrowRight'))return;
+    const target=event.target;
+    if(!target?.closest?.('#drafts,#parade-navigation') ||
+       target.closest('input,textarea,select,[contenteditable],[role="textbox"]'))return;
+    event.preventDefault();
+    moveParade(event.key==='ArrowRight'?1:-1);
+  });
   sortButtons.forEach(b=>b.addEventListener('click',()=>{
     const next=b.dataset.sort;
     if(!library.SORT_FIELDS.includes(next))return;
     if(sortBy===next)direction=direction==='desc'?'asc':'desc';
     else {sortBy=next;direction='desc';}
+    paradeIndex=0;
     showTrash=false;render();
   }));
-  trashButton.addEventListener('click',()=>{showTrash=!showTrash;render();});
+  trashButton.addEventListener('click',()=>{showTrash=!showTrash;paradeIndex=0;render();});
   window.MASHRoughStuff=Object.freeze({
-    setSnapshot(data){snapshot=data===null?null:validateSnapshot(data);notice='';render();},
+    setSnapshot(data){snapshot=data===null?null:validateSnapshot(data);paradeIndex=0;notice='';render();},
     setActionHandlers(next){
       if(!next||typeof next!=='object'||Array.isArray(next)
         ||Object.keys(next).some(key=>!['openDraft','moveToTrash'].includes(key))
