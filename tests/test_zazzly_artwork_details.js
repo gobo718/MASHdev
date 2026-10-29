@@ -44,7 +44,8 @@ function button(art){
 }
 function fixture(zazzlyMode,view,selectedArt,roomPage=0){
  const state={
-   zazzlyMode,THEME_SETS:{zazzly:{start:67,items:zazzlyNames}},
+   zazzlyMode,gehMode:zazzlyMode,collectionContext:false,catacombsContext:false,
+   THEME_SETS:{zazzly:{start:67,items:zazzlyNames}},
    genericResultCount:zazzlyMode?12:66,PAGE_SIZE:22,THUMBNAIL_PAGE_SIZE:11,
    shell:{dataset:{view:'zoom'}},
    artworkReturn:{view,roomPage,thumbnailPage:0,endlessIndex:0,gehRank:2},
@@ -112,6 +113,25 @@ test('Zazzly thumbnails keep local page zero on 77→78',()=>{
  assert.equal(state.selectedArt,78);
  assert.equal(state.thumbnailPage,0);
  assert.equal(state.artworkReturn.thumbnailPage,0);
+ assert.equal(state.roomPage,0);
+});
+for(const connectedContext of ['collectionContext','catacombsContext']){
+ test('Zazzly '+connectedContext+' also has a single 12-art thumbnail page',()=>{
+  const {state,fn}=fixture(true,'thumbnail',77);
+  state.gehMode=false;
+  state[connectedContext]=true;
+  fn.stepSelectedArtwork(1);
+  assert.equal(state.selectedArt,78);
+  assert.equal(state.thumbnailPage,0);
+  assert.equal(state.roomPage,0);
+ });
+}
+test('standalone Zazzly can retain its existing 11+1 thumbnail pagination',()=>{
+ const {state,fn}=fixture(true,'thumbnail',77);
+ state.gehMode=false;
+ fn.stepSelectedArtwork(1);
+ assert.equal(state.selectedArt,78);
+ assert.equal(state.thumbnailPage,1);
  assert.equal(state.roomPage,0);
 });
 test('Zazzly PARADE tracks local slot 3 after 69→70',()=>{
