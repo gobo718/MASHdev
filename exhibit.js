@@ -1404,7 +1404,7 @@
     selectedArt=Number(number)||1;
     selectedRank=Number(rank)||1;
 
-    const theme=((selectedArt-1)%66)+1;
+    const theme=zazzlyMode?selectedArt:((selectedArt-1)%66)+1;
     const pair=['geh','collection','catacombs'].includes(entranceKind)
       ? entranceEmojiText.split(/\s+/).slice(0,2)
       : emojiPairs[(theme-1)%emojiPairs.length];
@@ -1447,7 +1447,7 @@
       left:()=>match(leftSlots),
       wall:()=>match(wallSlots),
       right:()=>match(rightSlotsVisual),
-      endless:()=>match(endlessSlots,'result',String(Number(number)-1)),
+      endless:()=>match(endlessSlots),
       door:()=>frontDoor
     };
     const fallback={
@@ -1658,6 +1658,16 @@
 
   const artworkSequenceViews=new Set(['thumbnail','overhead','left','wall','right','endless']);
 
+  // Zazzly's compact room has twelve LOCAL positions, but its artwork IDs
+  // are 67–78. Use displayed IDs in details and local indexes for page/Parade.
+  function artworkSequenceBounds(){
+    const first=zazzlyMode?THEME_SETS.zazzly.start:1;
+    return {
+      first,
+      last:zazzlyMode?first+THEME_SETS.zazzly.items.length-1:genericResultCount
+    };
+  }
+
   function updateNavigationState(){
     const view=shell.dataset.view;
 
@@ -1681,16 +1691,17 @@
       if(artworkSequenceViews.has(artworkReturn?.view)){
         const sourceView=artworkReturn?.view;
         const fromExhibit=['left','wall','right'].includes(sourceView);
+        const {first,last}=artworkSequenceBounds();
         if(fromExhibit){
           const page=artworkReturn?.roomPage ?? roomPage;
-          const pageStart=page*PAGE_SIZE+1;
-          const pageEnd=Math.min(genericResultCount,pageStart+PAGE_SIZE-1);
+          const pageStart=zazzlyMode?first:page*PAGE_SIZE+1;
+          const pageEnd=zazzlyMode?last:Math.min(last,pageStart+PAGE_SIZE-1);
           const hasMultiple=pageEnd>pageStart;
           leftBtn.disabled=!hasMultiple;
           rightBtn.disabled=!hasMultiple;
         }else{
-          leftBtn.disabled=selectedArt<=1;
-          rightBtn.disabled=selectedArt>=genericResultCount;
+          leftBtn.disabled=selectedArt<=first;
+          rightBtn.disabled=selectedArt>=last;
         }
       }else{
         leftBtn.disabled=true;
@@ -1710,13 +1721,13 @@
     const fromExhibit=['left','wall','right'].includes(sourceView);
     let nextArt;
 
+    const {first,last}=artworkSequenceBounds();
     if(fromExhibit){
-      // Artwork opened from Exhibit View stays inside that physical room.
-      // LEFT/RIGHT and selection-view swipe loop only through that room's
-      // 22 artwork positions; moving to another Exhibit room requires a door.
+      // Room details loop only inside their physical room: 22 standard arts
+      // or the compact Zazzly room's own 67–78 range. Doors handle rooms.
       const page=artworkReturn?.roomPage ?? roomPage;
-      const pageStart=page*PAGE_SIZE+1;
-      const pageEnd=Math.min(genericResultCount,pageStart+PAGE_SIZE-1);
+      const pageStart=zazzlyMode?first:page*PAGE_SIZE+1;
+      const pageEnd=zazzlyMode?last:Math.min(last,pageStart+PAGE_SIZE-1);
       if(pageEnd<=pageStart) return;
 
       nextArt=selectedArt+delta;
@@ -1724,11 +1735,12 @@
       else if(nextArt>pageEnd) nextArt=pageStart;
     }else{
       nextArt=selectedArt+delta;
-      if(nextArt<1 || nextArt>genericResultCount) return;
+      if(nextArt<first || nextArt>last) return;
     }
 
     updateArtworkCopy(nextArt,selectedRank);
-    const nextPage=Math.floor((nextArt-1)/(sourceView==='thumbnail'?THUMBNAIL_PAGE_SIZE:PAGE_SIZE));
+    const localIndex=nextArt-first;
+    const nextPage=Math.floor(localIndex/(sourceView==='thumbnail'?THUMBNAIL_PAGE_SIZE:PAGE_SIZE));
 
     if(!fromExhibit){
       roomPage=nextPage;
@@ -1739,7 +1751,7 @@
       thumbnailPage=nextPage;
       artworkReturn.thumbnailPage=nextPage;
     }else if(sourceView==='endless'){
-      endlessIndex=nextArt-1;
+      endlessIndex=localIndex;
       artworkReturn.endlessIndex=endlessIndex;
     }
 
