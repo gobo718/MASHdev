@@ -18,16 +18,24 @@ function button(id){
  assert.equal(matches.length,1,'Expected one original action button: '+id);
  return matches[0][0];
 }
-test('Save control is an actual disabled button, never a link masquerading as saving',()=>{
+test('Save is clickable for account disclosure, not a fake Save',()=>{
  const save=button('save-project');
- assert.match(save,/\bdisabled\b/);
+ assert.doesNotMatch(save,/\sdisabled\b/);
+ assert.match(save,/aria-haspopup="dialog"/);
+ assert.match(save,/aria-controls="easel-account-needed"/);
+ assert.match(save,/title="Saving requires a player account"/);
  assert.match(save,/>SAVE TO DRAFTS<\/button>/);
  assert.doesNotMatch(actions,/<a\b[^>]*href="rough-stuff\.html"[^>]*>SAVE TO DRAFTS<\/a>/);
 });
-test('Save explicitly identifies missing account-backed persistence',()=>{
- const save=button('save-project');
- assert.match(save,/aria-label="[^"]*account[^"]*draft saving[^"]*"/);
- assert.match(save,/title="[^"]*account and draft service[^"]*"/);
+test('Guest Save opens an accessible account dialog, not registration or persistence',()=>{
+ assert.match(html,/<dialog id="easel-account-needed" class="easel-save-dialog" aria-labelledby="easel-save-heading"/);
+ assert.match(html,/SAVING REQUIRES AN ACCOUNT/);
+ assert.match(html,/Guests can experiment with the creation tools/);
+ assert.match(html,/Registration and draft storage are not connected in this build yet/);
+ assert.match(html,/No artwork has been saved/);
+ assert.match(html,/dialog\.showModal\(\)/);
+ assert.match(html,/close\.addEventListener\('click',\(\)=>dialog\.close\(\)\)/);
+ assert.match(html,/dialog\.addEventListener\('close',\(\)=>trigger\.focus\(\)\)/);
 });
 test('Delete is also disabled until an actual authoritative project action exists',()=>{
  const remove=button('delete-project');
@@ -48,11 +56,12 @@ test('Navigation to actual Studio selection rooms and Museum is preserved',()=>{
    'creation-station.html?easel=1','presentation-station.html?easel=1','studio.html','index.html'])
    assert.ok(html.includes('href="'+route+'"'),route);
  assert.match(html,/studio-draft-navigation\.js\?v=283/);
+ assert.match(css,/\.easel-save-dialog::backdrop/);
  assert.match(html,/easel-fit\.js\?v=274/);
 });
-test('CSS visibly distinguishes disabled action without changing its two-button layout',()=>{
+test('CSS preserves action geometry and styles native guest-save disclosure',()=>{
  assert.match(css,/\.project-actions button:disabled\{opacity:\.48;cursor:not-allowed\}/);
- assert.match(html,/easel\.css\?v=299/);
+ assert.match(html,/easel\.css\?v=300/);
 });
 test('No client-side persistence or fake server completion is introduced',()=>{
  assert.doesNotMatch(html,/localStorage|sessionStorage|fetch\(|saveDraft\(|deleteDraft\(|window\.location\s*=\s*['"]rough-stuff/);
