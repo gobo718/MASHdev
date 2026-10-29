@@ -106,8 +106,10 @@
     if(!enabled){paradeIndex=0;paradePosition.textContent='';return;}
     paradeIndex=Math.max(0,Math.min(paradeIndex,total-1));
     paradePosition.textContent=(paradeIndex+1)+' OF '+total;
-    paradePrev.disabled=paradeIndex===0;
-    paradeNext.disabled=paradeIndex===total-1;
+    // Keep the controls keyboard-focusable at the edges. Native disabled
+    // would remove focus from NEXT just as the player reaches the final card.
+    paradePrev.setAttribute('aria-disabled',String(paradeIndex===0));
+    paradeNext.setAttribute('aria-disabled',String(paradeIndex===total-1));
   }
   function moveParade(delta){
     if(!snapshot || showTrash || view!=='parade')return;
