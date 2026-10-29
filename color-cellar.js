@@ -138,22 +138,68 @@
       +' · Reference only; not an owned or equipped color';
     inspector.hidden=false;
   }
+  // Reference jars can number 509 in stage seven. Enter the entire display
+  // with ONE Tab stop, then explore by the ACTUAL shelf geometry. This never
+  // selects a Paint to equip, modifies a recipe, or advances progression.
+  const inspectedItems=()=>[...display.querySelectorAll('[data-inspect-kind]')];
+  function activate(item,{focus=false,inspect=false}={}){
+    if(!item||!display.contains(item))return;
+    for(const candidate of inspectedItems())candidate.tabIndex=candidate===item?0:-1;
+    if(focus)item.focus({preventScroll:true});
+    if(inspect)showInspector(item);
+  }
+  function geometricNeighbor(item,key,items){
+    const from=item.getBoundingClientRect();
+    const fromCenter={x:from.left+from.width/2,y:from.top+from.height/2};
+    if(from.width<=0||from.height<=0)return null;
+    const horizontal=key==='ArrowLeft'||key==='ArrowRight';
+    const positive=key==='ArrowRight'||key==='ArrowDown';
+    let best=null;
+    for(const candidate of items){
+      if(candidate===item)continue;
+      const box=candidate.getBoundingClientRect();
+      if(box.width<=0||box.height<=0)continue;
+      const deltaX=box.left+box.width/2-fromCenter.x;
+      const deltaY=box.top+box.height/2-fromCenter.y;
+      const primary=horizontal?deltaX:deltaY;
+      const offset=horizontal?Math.abs(deltaY):Math.abs(deltaX);
+      // Strictly directional: no movement at the extreme physical edge.
+      if((positive?primary:-primary)<=0.5)continue;
+      const along=Math.abs(primary);
+      const aligned=offset<=Math.max(1,
+        horizontal?Math.max(from.height,box.height)/2:Math.max(from.width,box.width)/2);
+      // On shelves, the adjacent object on the SAME visible row/column wins
+      // over one diagonally closer in another row/column.
+      const score=(aligned?0:1000000)+offset*8+along;
+      if(!best||score<best.score)best={item:candidate,score};
+    }
+    return best?.item||null;
+  }
   if(typeof display.addEventListener==='function'){
+    display.addEventListener('focusin',event=>{
+      const item=event.target.closest?.('[data-inspect-kind]');
+      if(item)activate(item);
+    });
     display.addEventListener('click',event=>{
-      const item=event.target.closest('[data-inspect-kind]');
-      if(item&&display.contains(item))showInspector(item);
+      const item=event.target.closest?.('[data-inspect-kind]');
+      if(item&&display.contains(item))activate(item,{focus:true,inspect:true});
     });
     display.addEventListener('keydown',event=>{
-      const item=event.target.closest('[data-inspect-kind]');
-      if(!item||!display.contains(item))return;
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();showInspector(item);return}
-      if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp'].includes(event.key))return;
-      const items=[...display.querySelectorAll('[data-inspect-kind]')];
-      const at=items.indexOf(item),step=['ArrowRight','ArrowDown'].includes(event.key)?1:-1;
-      if(at<0||!items.length)return;
-      event.preventDefault();item.tabIndex=-1;
-      const next=items[(at+step+items.length)%items.length];
-      next.tabIndex=0;next.focus();showInspector(next);
+      const item=event.target.closest?.('[data-inspect-kind]');
+      if(!item||!display.contains(item)||event.defaultPrevented||
+         event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+      if(event.key==='Enter'||event.key===' '){
+        event.preventDefault();activate(item,{inspect:true});return;
+      }
+      if(!['ArrowRight','ArrowDown','ArrowLeft','ArrowUp','Home','End'].includes(event.key))return;
+      const items=inspectedItems();
+      if(!items.includes(item))return;
+      const next=event.key==='Home'?items[0]
+        :event.key==='End'?items[items.length-1]
+        :geometricNeighbor(item,event.key,items);
+      if(!next||next===item)return;
+      event.preventDefault();
+      activate(next,{focus:true,inspect:true});
     });
   }
   function render(stage){
