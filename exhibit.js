@@ -1740,11 +1740,17 @@
 
     updateArtworkCopy(nextArt,selectedRank);
     const localIndex=nextArt-first;
-    const nextPage=Math.floor(localIndex/(sourceView==='thumbnail'?THUMBNAIL_PAGE_SIZE:PAGE_SIZE));
+    // Connected Zazzly has one 12-art thumbnail page (not two 11-item pages).
+    // Its physical room is always page zero, even when the generic standalone
+    // thumbnail presentation uses a second thumbnail page.
+    const connectedZazzly=zazzlyMode&&(gehMode||collectionContext||catacombsContext);
+    const nextPage=connectedZazzly?0:Math.floor(
+      localIndex/(sourceView==='thumbnail'?THUMBNAIL_PAGE_SIZE:PAGE_SIZE)
+    );
 
     if(!fromExhibit){
-      roomPage=nextPage;
-      artworkReturn.roomPage=nextPage;
+      roomPage=zazzlyMode?0:nextPage;
+      artworkReturn.roomPage=roomPage;
     }
 
     if(sourceView==='thumbnail'){
