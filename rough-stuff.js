@@ -25,6 +25,9 @@
   let handlers=Object.freeze({});
   let view='thumbnails',sortBy=null,direction=null,showTrash=false;
   let actionInFlight=false;
+  // An account snapshot or handler replacement invalidates pending callbacks.
+  // A stale open/delete response must never navigate or paint a newer view.
+  let snapshotGeneration=0;
   let notice='';
   const safeId=v=>typeof v==='string'&&/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/.test(v);
   const create=(tag,className,text)=>{
@@ -37,8 +40,11 @@
     if(!data||typeof data!=='object'||Array.isArray(data)
        ||!Array.isArray(data.drafts)||!Array.isArray(data.trashed))
       throw new TypeError('Expected server-provided drafts and trashed arrays');
-    library.projectDrafts(data.drafts);
-    const used=new Set(data.drafts.map(x=>x.id));
+    // Normalize each received record into the established read model BEFORE
+    // retaining it. A shallow copy would leave nested image-reference data
+    // shared with the caller and mutable after setSnapshot() returned.
+    const projected=library.projectDrafts(data.drafts).items;
+    const used=new Set(projected.map(x=>x.id));
     for(const item of data.trashed){
       if(!item||typeof item!=='object'||!safeId(item.id)||used.has(item.id))
         throw new TypeError('Invalid or duplicate Trash record identity');
@@ -47,9 +53,19 @@
       if(typeof item.title!=='string'||typeof item.type!=='string')
         throw new TypeError('Trash record requires a title and Creation type');
     }
-    return {drafts:data.drafts.map(x=>({...x})),
-      trashed:data.trashed.map(x=>({...x})),
-      receivedAt:new Date().toISOString()};
+    const drafts=projected.map((item,index)=>Object.freeze({
+      ...item,
+      reference:item.reference?Object.freeze({...item.reference}):null,
+      // A revision is only an ACTION INPUT and never grants authorization.
+      revision:safeId(data.drafts[index].revision)?data.drafts[index].revision:null
+    }));
+    const trashed=data.trashed.map(item=>Object.freeze({
+      id:item.id,title:item.title,type:item.type,deletedAt:item.deletedAt
+    }));
+    return Object.freeze({
+      drafts:Object.freeze(drafts),trashed:Object.freeze(trashed),
+      receivedAt:new Date().toISOString()
+    });
   }
   function statusText(value){
     status.textContent=value;
@@ -161,9 +177,13 @@
     if(actionInFlight||typeof callback!=='function')return;
     let intent;
     try{intent=openIntent(record,action);}catch(e){notice='Draft action unavailable: '+e.message;render();return;}
+    const generation=snapshotGeneration;
     actionInFlight=true;render();
     try{
       const response=await callback(intent);
+      // A newer account snapshot, logout, or account-service replacement
+      // invalidates this response even if the old callback says authorized.
+      if(generation!==snapshotGeneration)return;
       if(action==='open-in-easel'){
         // The service must return authorization and the linked project ID.
         if(!response||response.authorized!==true||!safeId(response.projectId))
@@ -178,8 +198,14 @@
           throw new Error('The account service did not confirm the Trash action.');
         notice='Trash action accepted. Awaiting updated account records.';
       }
-    }catch(e){notice='Draft action could not finish: '+(e?.message||'account service error');}
-    finally{actionInFlight=false;render();} // Rendering state remains server-sourced.
+    }catch(e){
+      if(generation===snapshotGeneration)
+        notice='Draft action could not finish: '+(e?.message||'account service error');
+    }finally{
+      // An older action may finish AFTER a newer action has started. Never
+      // unlock its controls, replace its notice, or repaint its snapshot.
+      if(generation===snapshotGeneration){actionInFlight=false;render();}
+    } // Rendering state remains server-sourced.
   }
   viewButtons.forEach(b=>b.addEventListener('click',()=>{
     const next=b.dataset.view==='parade'?'parade':'thumbnails';
@@ -208,13 +234,21 @@
   }));
   trashButton.addEventListener('click',()=>{showTrash=!showTrash;paradeIndex=0;render();});
   window.MASHRoughStuff=Object.freeze({
-    setSnapshot(data){snapshot=data===null?null:validateSnapshot(data);paradeIndex=0;notice='';render();},
+    setSnapshot(data){
+      const next=data===null?null:validateSnapshot(data);
+      // Only a fully validated replacement revokes pending actions. Failed
+      // validation must leave the current snapshot and callbacks intact.
+      snapshotGeneration++;
+      snapshot=next;actionInFlight=false;paradeIndex=0;notice='';render();
+    },
     setActionHandlers(next){
       if(!next||typeof next!=='object'||Array.isArray(next)
         ||Object.keys(next).some(key=>!['openDraft','moveToTrash'].includes(key))
         ||Object.values(next).some(fn=>typeof fn!=='function'))
         throw new TypeError('Only account-service action callbacks are allowed');
-      handlers=Object.freeze({...next});render();
+      // Replacing the account service revokes work requested from the old one.
+      snapshotGeneration++;
+      handlers=Object.freeze({...next});actionInFlight=false;render();
     }
   });
   render();
