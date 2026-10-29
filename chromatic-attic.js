@@ -37,22 +37,53 @@
     inspector.textContent='CHROMALUCENT · '+name+' · '+hex+' · Reference preview only; not owned or equipped.';
     inspector.hidden=false;
   }
+  const crystalItems=()=>[...display.querySelectorAll('.crystal[data-crystal-hex]')];
+  function selectCrystal(target,focus=false,show=false){
+    if(!target||!display.contains(target))return;
+    for(const item of crystalItems())item.tabIndex=item===target?0:-1;
+    if(focus)target.focus({preventScroll:true});
+    if(show)inspect(target);
+  }
+  function verticalTarget(current,step){
+    const row=current.closest('.crystal-row');
+    const rows=row?[...row.parentElement.querySelectorAll('.crystal-row')]:[];
+    const neighbor=rows[rows.indexOf(row)+step];
+    if(!neighbor)return null;
+    const items=[...neighbor.querySelectorAll('.crystal[data-crystal-hex]')];
+    if(!items.length)return null;
+    const rect=current.getBoundingClientRect(),center=rect.left+rect.width/2;
+    return items.reduce((best,item)=>{
+      const box=item.getBoundingClientRect();
+      const distance=Math.abs(box.left+box.width/2-center);
+      return !best||distance<best.distance?{item,distance}:best;
+    },null)?.item||null;
+  }
+  display.addEventListener('focusin',event=>{
+    const target=event.target.closest?.('.crystal[data-crystal-hex]');
+    if(target)selectCrystal(target);
+  });
   display.addEventListener('click',event=>{
-    const crystal=event.target.closest?.('.crystal[data-crystal-hex]');
-    if(crystal)inspect(crystal);
+    const target=event.target.closest?.('.crystal[data-crystal-hex]');
+    if(target)selectCrystal(target,true,true);
   });
   display.addEventListener('keydown',event=>{
-    const crystal=event.target.closest?.('.crystal[data-crystal-hex]');
-    if(!crystal || !display.contains(crystal))return;
-    if(event.key==='Enter' || event.key===' '){
-      event.preventDefault();
-      inspect(crystal);
-    }else if(event.key==='ArrowLeft' || event.key==='ArrowRight'){
-      const all=[...display.querySelectorAll('.crystal[data-crystal-hex]')];
-      const i=all.indexOf(crystal),delta=event.key==='ArrowRight'?1:-1;
-      const next=all[i+delta];
-      if(next){event.preventDefault();next.focus();inspect(next);}
+    const target=event.target.closest?.('.crystal[data-crystal-hex]');
+    if(!target||!display.contains(target)||event.defaultPrevented||
+       event.altKey||event.ctrlKey||event.metaKey||event.shiftKey)return;
+    if(event.key==='Enter'||event.key===' '){
+      event.preventDefault();selectCrystal(target,false,true);return;
     }
+    const all=crystalItems(),i=all.indexOf(target);
+    if(i<0)return;
+    let next=null;
+    if(event.key==='ArrowUp')next=verticalTarget(target,-1);
+    else if(event.key==='ArrowDown')next=verticalTarget(target,1);
+    else if(event.key==='ArrowLeft')next=all[i-1];
+    else if(event.key==='ArrowRight')next=all[i+1];
+    else if(event.key==='Home')next=all[0];
+    else if(event.key==='End')next=all[all.length-1];
+    if(!next)return;
+    event.preventDefault();selectCrystal(next,true,true);
   });
   function render(stage){
     const s=stages[stage];
@@ -67,6 +98,8 @@
     });
     const note=document.createElement('div'); note.className='stage-note'; note.textContent=s.note;
     display.append(field,note);
+    const first=crystalItems()[0];
+    if(first)first.tabIndex=0;
   }
   document.querySelectorAll('input[name="stage"]').forEach(r=>r.addEventListener('change',()=>render(Number(r.value))));
   render(1);
