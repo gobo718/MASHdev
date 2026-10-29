@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MASHpedition Museum Hub</title>
-<link rel="stylesheet" href="styles.css?v=290">
+<link rel="stylesheet" href="styles.css?v=291">
 <link rel="stylesheet" href="game-bar.css?v=226">
 </head>
 <body>
@@ -29,6 +29,13 @@
     <button type="button">CONTROL ROOM</button>
   </section>
 </main>
+<dialog id="museum-guest-intro" class="museum-guest-intro" aria-labelledby="museum-intro-title" aria-describedby="museum-intro-message">
+  <h2 id="museum-intro-title">WELCOME TO MASHPEDITION</h2>
+  <p id="museum-intro-message">You can explore and experiment as a guest. Saving your creations requires a player account.</p>
+  <p>Registration and saved progress are not connected in this build.</p>
+  <button id="museum-intro-close" type="button">ENTER MUSEUM</button>
+</dialog>
+
 <nav class="game-menu-bar" aria-label="Museum menu"><button type="button" data-display-mode>FULL</button></nav>
 <script>
 /* v266 — Museum Map label optical centering. Move only the visible text, never the plates. */
@@ -104,6 +111,23 @@
   addEventListener('resize', layoutMuseumMap, {passive:true});
   addEventListener('mashpeditionviewportchange', layoutMuseumMap);
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(layoutMuseumMap);
+})();
+</script>
+<script>
+/* Early guest disclosure only. Session marker controls this notice, never player progress. */
+(() => {
+  const dialog=document.getElementById('museum-guest-intro');
+  const close=document.getElementById('museum-intro-close');
+  const key='mashpedition.museumGuestNotice.v1';
+  let shown=false;
+  try {shown=sessionStorage.getItem(key)==='shown'}catch(_error){}
+  if(shown)return;
+  try {sessionStorage.setItem(key,'shown')}catch(_error){}
+  close.addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('close',()=>{
+    document.querySelector('.museum-hub a[href]')?.focus();
+  });
+  dialog.showModal();
 })();
 </script>
 <script src="game-bar.js?v=226"></script>
