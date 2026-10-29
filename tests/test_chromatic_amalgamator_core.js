@@ -2,6 +2,8 @@
    Checks booked additive results and pigment milestone without game fixtures. */
 'use strict';
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
 const paint=require('../paint-mixer-core.js');
 const engine=require('../chromatic-amalgamator-core.js');
 const completed=paint.firstTierKeys();
@@ -87,5 +89,14 @@ check('no server-owned awards or image/paint storage methods exist',()=>{
   'eligibleAfterPigmentMixes','normalizeInputs','planMix'
  ]);
  assert.ok(Object.isFrozen(engine));
+});
+check('RGB sources and CMY products are present in accepted Attic colors',()=>{
+ const attic=fs.readFileSync(path.join(__dirname,'..','chromatic-attic.js'),'utf8');
+ assert.equal(typeof attic,'string');
+ const accepted=['RED','GREEN','BLUE','CYAN','MAGENTA','YELLOW'];
+ for(const name of accepted)assert.ok(attic.includes("['"+name+"',"),name);
+ // Attic DISPLAY order (RGB) is separate from earned INTRODUCTION order (BRG).
+ assert.ok(attic.indexOf("['RED',")<attic.indexOf("['GREEN',"));
+ assert.ok(attic.indexOf("['GREEN',")<attic.indexOf("['BLUE',"));
 });
 console.log('Chromatic Amalgamator first RGB tier: '+scenarios+' source-backed scenarios PASS');
