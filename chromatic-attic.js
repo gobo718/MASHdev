@@ -20,7 +20,7 @@
   function crystal([name,color],i){
     const c=document.createElement('div'); c.className='crystal'; c.style.setProperty('--c',color);
     c.style.animationDuration=(3.2+(i%5)*.27)+'s';
-    c.tabIndex=0;
+    c.tabIndex=-1;
     c.setAttribute('role','button');
     c.dataset.crystalName=name;
     c.dataset.crystalHex=color.toUpperCase();
