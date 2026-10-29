@@ -4,8 +4,15 @@
 <aside class="selection-group creation-equipment" aria-label="Creation equipment"><div>🔡<small>DEFAULT</small></div><div>🖌️<small>DEFAULT</small></div><div>✨<small>DEFAULT</small></div></aside>
 <aside class="selection-group materials" aria-label="Materials"><div>🎨<small>DEFAULT</small></div><div>🎨<small>DEFAULT</small></div><div>🎨<small>DEFAULT</small></div><div>🌈<small>DEFAULT</small></div></aside>
 <aside class="selection-group presentation-equipment" aria-label="Presentation equipment"><div>🫟<small>DEFAULT</small></div><div>📄<small>DEFAULT</small></div><div>🖼️<small>DEFAULT</small></div></aside>
-<section class="project"><div class="work">EASEL<br><span>PROJECT WORK AREA</span></div><div class="project-actions"><button type="button" id="save-project" disabled aria-label="Save to drafts unavailable: accounts and draft saving are not connected" title="Saving requires the future account and draft service">SAVE TO DRAFTS</button><button type="button" id="delete-project" disabled aria-label="Delete project unavailable: no project deletion service is connected" title="Deletion requires an authoritative project action">DELETE</button></div></section>
+<section class="project"><div class="work">EASEL<br><span>PROJECT WORK AREA</span></div><div class="project-actions"><button type="button" id="save-project" aria-haspopup="dialog" aria-controls="easel-account-needed" aria-label="Save to drafts (account required)" title="Saving requires a player account">SAVE TO DRAFTS</button><button type="button" id="delete-project" disabled aria-label="Delete project unavailable: no project deletion service is connected" title="Deletion requires an authoritative project action">DELETE</button></div></section>
 </main>
+<dialog id="easel-account-needed" class="easel-save-dialog" aria-labelledby="easel-save-heading" aria-describedby="easel-save-details">
+<h2 id="easel-save-heading">SAVING REQUIRES AN ACCOUNT</h2>
+<p id="easel-save-details">Guests can experiment with the creation tools, but saving drafts requires a player account.</p>
+<p>Registration and draft storage are not connected in this build yet. No artwork has been saved.</p>
+<button type="button" id="easel-save-close">CLOSE</button>
+</dialog>
+
 <!-- v274: copied verbatim from the established Chromatic Attic room menu-bar structure. -->
 <nav class="game-menu-bar" aria-label="Chromatic Attic menu"><a href="studio.html">STUDIO</a><a href="index.html">MUSEUM</a><button type="button" data-display-mode>FULL</button></nav>
 <script src="studio-draft-navigation.js?v=283"></script>
@@ -17,6 +24,17 @@
  document.querySelectorAll('.studio-tools a[href]').forEach(link=>{
    link.href=nav.stationHref(link.getAttribute('href'),context);
  });
+})();
+</script>
+<script>
+/* Guest Save disclosure, not an account service or a Save implementation. */
+(() => {
+  const trigger=document.getElementById('save-project');
+  const dialog=document.getElementById('easel-account-needed');
+  const close=document.getElementById('easel-save-close');
+  trigger.addEventListener('click',()=>{ dialog.showModal(); close.focus(); });
+  close.addEventListener('click',()=>dialog.close());
+  dialog.addEventListener('close',()=>trigger.focus());
 })();
 </script>
 <script src="game-bar.js?v=226"></script><script src="easel-fit.js?v=274"></script></body></html>
