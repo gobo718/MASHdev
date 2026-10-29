@@ -126,6 +126,23 @@ function independent(image){
   assert.ok(seen instanceof Uint8Array);
   assert.equal(response.sha256,trusted.sha256);
  });
+ await test('returned dimensions remain bound to pixel snapshot across async digest',async()=>{
+  const image=pixels(2,2,saved);
+  let completeDigest=null;
+  const controlled={digest(_algorithm,_bytes){
+    return new Promise(resolve=>{completeDigest=resolve});
+  }};
+  const pending=api.fingerprint(image,{subtle:controlled});
+  // Same data length, different metadata. A stale width/height read after
+  // awaiting the provider must not describe the previously hashed bytes.
+  image.width=4;image.height=1;
+  completeDigest(Uint8Array.from(Buffer.from(trusted.sha256,'hex')).buffer);
+  const result=await pending;
+  assert.equal(result.width,2);
+  assert.equal(result.height,2);
+  assert.equal(result.sha256,trusted.sha256);
+  assert.equal(Object.isFrozen(result),true);
+ });
  await test('missing cryptographic provider fails closed',async()=>{
   await assert.rejects(api.fingerprint(original,{subtle:{}}),
     /SHA-256 Web Crypto unavailable/);
