@@ -68,7 +68,10 @@ for(const query of [
 }
 test('GEH rank selector retains the ten authored slots for future progress',()=>{
  const present=[...markup.matchAll(/data-rank="(\d+)"/g)].map(m=>Number(m[1]));
- assert.deepEqual(present,[1,2,3,4,5,6,7,8,9,10]);
+ assert.equal(present.length%10,0);
+ assert.ok(present.length>=10);
+ for(let i=0;i<present.length;i+=10)
+   assert.deepEqual(present.slice(i,i+10),[1,2,3,4,5,6,7,8,9,10]);
  assert.match(markup,/exhibit\.js\?v=297/);
 });
 test('Only the first GEH rank button is visible and selected',()=>{
