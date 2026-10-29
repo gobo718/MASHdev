@@ -137,3 +137,14 @@ button,.hub-link{
 @media (prefers-reduced-motion:reduce){
   .museum-hub.museum-signage-settling .museum-map-label-text{animation:none}
 }
+
+/* Museum guest welcome notice. Overlay only: never alters approved map plates. */
+.museum-guest-intro{box-sizing:border-box;width:min(92vw,450px);max-height:min(80dvh,650px);overflow:auto;
+  border:2px solid #555;background:#f7f4ed;color:#111;padding:18px 20px;
+  font:14px/1.45 Arial,sans-serif;box-shadow:0 16px 48px #0008}
+.museum-guest-intro::backdrop{background:rgba(0,0,0,.60)}
+.museum-guest-intro h2{font-size:18px;margin:0 0 12px}
+.museum-guest-intro p{margin:8px 0 12px}
+.museum-guest-intro button{display:block;margin:16px 0 0 auto;min-width:130px;min-height:44px;
+  padding:8px 12px;border:1px solid #555;background:white;color:#111;font:700 12px Arial,sans-serif}
+.museum-guest-intro button:focus-visible{outline:3px solid #345fc5;outline-offset:3px}
