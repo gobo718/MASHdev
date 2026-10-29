@@ -815,7 +815,10 @@
       const exhibitApplicable=!catSearchHasTheme;
       overheadBtn.disabled=catSearchHasTheme;
       roomBtn.disabled=!exhibitApplicable;
-      endlessBtn.disabled=(requestedArea==='cat-theme')?false:!catSearchHasTheme;
+      // Both canonical Catacombs searches have a sequential artwork feed.
+      // Theme filtering removes Exhibit/Aerial, NOT the feed. Preserve the
+      // older Zazzly return-context rule outside active Catacombs searches.
+      endlessBtn.disabled=catacombsMode?false:!catSearchHasTheme;
       thumbnailBtn.disabled=false;
       catSearchHas.hidden=false;
       catSearchHasEmoji.hidden=false;
@@ -865,7 +868,8 @@
     setCatSearchHasEmoji(catSearchHasEmojiPresent?'emoji':'no-emoji');
     const view=shell.dataset.view;
     if(catSearchHasTheme && ['overhead','left','wall','right'].includes(view)) renderThumbnailPage();
-    else if(!catSearchHasTheme && view==='endless') renderThumbnailPage();
+    // Keeping or removing a Theme filter must not eject a player from
+    // PARADE: this view is valid for both Catacombs search capabilities.
   }
 
   function setCatSearchHasEmoji(value){
@@ -1342,7 +1346,6 @@
   }
 
   function renderEndless(){
-    if(catacombsMode && requestedArea!=='cat-theme' && !catSearchHasTheme) return;
     if(!capabilities.endless){
       renderThumbnailPage();
       return;
@@ -2027,7 +2030,10 @@
       window.location.href=`exhibit.html?${next.toString()}`;
       return;
     }
-    if(capabilities.room) renderRoom(zazzlyMode?13:23);
+    // The Theme-restricted Catacombs has no room populated with Theme spots.
+    // Its Entrance must lead to THUMBNAILS, not a blocked Exhibit call.
+    if(catacombsMode && catSearchHasTheme) renderThumbnailPage();
+    else if(capabilities.room) renderRoom(zazzlyMode?13:23);
     else if(capabilities.thumbnail) renderThumbnailPage();
   });
 
@@ -2106,7 +2112,7 @@
     renderRoom(zazzlyMode?13:(entryDoor && targetLocalDoor===1 ? 23 : entryDoor ? 8 : 1));
   }
   else if(requestedStart==='thumbnail' && capabilities.thumbnail) renderThumbnailPage();
-  else if((requestedStart==='parade' || requestedStart==='endless') && capabilities.endless && !(catacombsMode && !catSearchHasTheme)) renderEndless();
+  else if((requestedStart==='parade' || requestedStart==='endless') && capabilities.endless) renderEndless();
   else setView('door');
 })();
 
