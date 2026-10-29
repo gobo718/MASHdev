@@ -97,9 +97,11 @@ check('each effect must be explicitly loaded',()=>{
   assert.throws(()=>renderer.render(original,output,{effect:'posterization',enabled:false}),/not loaded/);
  }finally{globalThis.MASHPosterization=prev}
 });
-check('effect renderer only exports two independent choices and a render entrypoint',()=>{
+check('atomic effects remain separate from explicitly named presets',()=>{
  assert.deepEqual([...renderer.EFFECTS],['pixelation','posterization']);
- assert.deepEqual(Object.keys(renderer),['EFFECTS','render']);
+ assert.deepEqual([...renderer.PRESETS],['hope']);
+ assert.deepEqual(Object.keys(renderer),['EFFECTS','PRESETS','render','renderPreset']);
  assert.ok(Object.isFrozen(renderer));
+ assert.ok(Object.isFrozen(renderer.PRESETS));
 });
 console.log('Visual effects canvas renderer: '+tests+' production-boundary checks PASS');
