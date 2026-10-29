@@ -57,6 +57,6 @@ test('CSS visibly distinguishes disabled action without changing its two-button 
 test('No client-side persistence or fake server completion is introduced',()=>{
  assert.doesNotMatch(html,/localStorage|sessionStorage|fetch\(|saveDraft\(|deleteDraft\(|window\.location\s*=\s*['"]rough-stuff/);
  assert.match(rough,/Saved drafts are not connected to an account in this build\./);
- assert.match(rough,/if\(!handlers\.openDraft\|\|/); // inspect real server-guarded action state
+ assert.match(rough,/open\.disabled=!handlers\.openDraft\|\|/); // inspect real server-guarded action state
 });
 console.log('Easel action integrity: '+count+' production-source scenarios PASS');
