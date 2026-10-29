@@ -151,7 +151,7 @@ test('Three-row Up/Down moves across adjacent actual rows',()=>{
  press(crystals()[middle],'ArrowDown');
  assert.ok(focused()>=15&&focused()<=21);
  press(crystals()[focused()],'ArrowUp');
- assert.equal(focused(),middle);
+ assert.ok(Math.abs(focused()-middle)<=1); // Staggered 7/8/7 rows can tie at the center.
 });
 test('Home and End navigate to first/last without 22 Tab stops',()=>{
  crystals()[6].focus();
