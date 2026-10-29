@@ -44,11 +44,14 @@
   }
   async function fingerprint(image,{subtle}={}){
     const bytes=canonicalBytes(image);
+    // Dimensions describe the same synchronous snapshot as the hashed bytes.
+    // Never read mutable image properties again after the asynchronous digest.
+    const width=image.width, height=image.height;
     const provider=digestProvider(subtle);
     const digest=await provider.digest('SHA-256',bytes);
     const hex=Array.from(new Uint8Array(digest),n=>n.toString(16).padStart(2,'0')).join('');
     if(!/^[0-9a-f]{64}$/.test(hex))throw new Error('Invalid SHA-256 digest response');
-    return Object.freeze({format:FORMAT,width:image.width,height:image.height,sha256:hex});
+    return Object.freeze({format:FORMAT,width,height,sha256:hex});
   }
   function validateExpected(record){
     if(!record||record.format!==FORMAT||!validDimension(record.width)||
