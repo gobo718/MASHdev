@@ -1996,7 +1996,9 @@
       if(!Number.isFinite(index)) return;
       endlessIndex=index;
       renderEndless();
-      openArtwork(index+1,1);
+      // The card carries its displayed artwork identity (67–78 in Zazzly).
+      // The index is local to PARADE and must never replace the art ID.
+      openArtwork(Number(button.dataset.art),gehMode?gehRank:1);
     });
   });
 
