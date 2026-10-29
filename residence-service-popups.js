@@ -11,6 +11,29 @@
     'trick-or-treat': { title: 'TRICK-OR-TREAT', rows: null, empty: 'Trick-or-Treat eligibility and rewards are not connected to this build.' }
   });
   const snapshots = new Map();
+  // Retain only the existing displayed fields, copied as primitives at the
+  // moment an account service supplies them. Caller-owned arrays/records must
+  // not silently repaint a different resident's mailbox, visits or gifts.
+  const recordFields = Object.freeze({
+    mailbox: Object.freeze(['id','subject','sender','receivedAt','read']),
+    guestbook: Object.freeze(['id','visitor','action','visitedAt','signingStyle']),
+    'gift-dropbox': Object.freeze(['id','itemLabel','sender','sentAt'])
+  });
+  const primitive = value => value === null || ['string','number','boolean','undefined'].includes(typeof value)
+    ? value : null;
+  function isolatedSnapshot(service, data) {
+    if (service === 'trick-or-treat')
+      return Object.freeze({status:primitive(data.status)});
+    const key=definitions[service].rows;
+    if (!Array.isArray(data[key])) return Object.freeze({[key]:null});
+    const rows=data[key].map(record => {
+      if (!record || typeof record !== 'object' || Array.isArray(record)) return null;
+      const copy={};
+      for (const field of recordFields[service]) copy[field]=primitive(record[field]);
+      return Object.freeze(copy);
+    });
+    return Object.freeze({[key]:Object.freeze(rows)});
+  }
   let previouslyFocused = null;
   const dialog = document.createElement('dialog');
   dialog.className = 'residence-service-dialog';
@@ -119,7 +142,7 @@
     if (data !== null && (!data || typeof data !== 'object' || Array.isArray(data)))
       throw new TypeError('Presentation snapshot must be an object or null');
     if (data === null) snapshots.delete(service);
-    else snapshots.set(service, data);
+    else snapshots.set(service, isolatedSnapshot(service, data));
     if (dialog.open && dialog.dataset.service === service) paint(service);
   }
   const bindings = [
