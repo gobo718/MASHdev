@@ -868,8 +868,9 @@
     setCatSearchHasEmoji(catSearchHasEmojiPresent?'emoji':'no-emoji');
     const view=shell.dataset.view;
     if(catSearchHasTheme && ['overhead','left','wall','right'].includes(view)) renderThumbnailPage();
-    // Keeping or removing a Theme filter must not eject a player from
-    // PARADE: this view is valid for both Catacombs search capabilities.
+    // Both active Catacombs modes retain PARADE on filter changes.
+    // Preserve the earlier Zazzly return-context fallback separately.
+    else if(!catacombsMode && !catSearchHasTheme && view==='endless') renderThumbnailPage();
   }
 
   function setCatSearchHasEmoji(value){
