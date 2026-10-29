@@ -1,7 +1,8 @@
-/* MASHpedition · 17-08 · source-safe visual-effects canvas boundary.
+/* MASHpedition · 17-08 / 11-03 · source-safe visual-effects canvas boundary.
    Only processes an EXPLICIT caller-selected existing image surface.
-   No demo artwork, game UI, target selection, Tokens, presets, progression,
-   Mutosis, inventory, persistence or implicit effect combinations.
+   Atomic Effects and explicitly named Effects Presets remain distinct APIs.
+   No demo artwork, game UI, target selection, Tokens, progression, Mutosis,
+   inventory, persistence or IMPLICIT effect combinations.
    Source and destination canvases must be different to preserve originals. */
 (function(root,factory){
   'use strict';
@@ -11,6 +12,7 @@
 })(typeof globalThis!=='undefined'?globalThis:null,function(root){
   'use strict';
   const EFFECTS=Object.freeze(['pixelation','posterization']);
+  const PRESETS=Object.freeze(['hope']);
   function validCanvas(surface){
     return !!surface && typeof surface.getContext==='function' &&
       Number.isSafeInteger(surface.width) && surface.width>0 &&
@@ -59,5 +61,24 @@
     destinationContext.putImageData(processed,0,0);
     return Object.freeze({width,height,effect:options.effect,enabled:options.enabled});
   }
-  return Object.freeze({EFFECTS,render});
+  // Named configurations have their own explicit entry point, separate from
+  // atomic effect selection. HOPE is the only booked, implemented preset here.
+  // It owns its own Posterization + Limited Palette + caption-band treatment.
+  // No renderer may infer a preset from a selected artwork or a URL parameter.
+  function renderPreset(sourceCanvas,destinationCanvas,options){
+    if(!validCanvas(sourceCanvas)||!validCanvas(destinationCanvas))
+      throw new TypeError('Two valid, separate image canvases are required');
+    if(sourceCanvas===destinationCanvas)
+      throw new RangeError('Source canvas must not be used as the preset output');
+    if(!options||options.preset!=='hope'||typeof options.enabled!=='boolean')
+      throw new TypeError('Specify an implemented named preset and explicit enabled state');
+    const preset=root?.MASHHopePreset;
+    if(typeof preset?.render!=='function'||preset?.PRESET?.id!=='hope')
+      throw new Error('HOPE preset module is not loaded');
+    return preset.render(sourceCanvas,destinationCanvas,{
+      enabled:options.enabled,
+      ...(Object.hasOwn(options,'caption')?{caption:options.caption}:{})
+    });
+  }
+  return Object.freeze({EFFECTS,PRESETS,render,renderPreset});
 });
