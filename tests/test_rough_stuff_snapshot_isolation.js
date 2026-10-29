@@ -217,7 +217,7 @@ const delay=()=>{let resolve,reject;
   assert.equal(library.oneDayTrashDeadline(date),'2026-10-28T10:00:00.000Z');
  });
  await check('no additional source UI, local saving or changed geometric contract',async()=>{
-  assert.match(html,/rough-stuff\.js\?v=293/);
+  assert.match(html,/rough-stuff\.js\?v=300/);
   assert.doesNotMatch(source,/localStorage|sessionStorage|fetch\(/);
   assert.doesNotMatch(source,/new Image\(|URL\.createObjectURL/);
   assert.match(source,/snapshotGeneration/);
