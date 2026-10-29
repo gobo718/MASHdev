@@ -373,7 +373,10 @@
   const areaPreset=zazzlyMode?ZAZZLY_DEFINITION:(AREA_PRESETS[requestedArea]||null);
   const requestedMix=(params.get('mix') || areaPreset?.mix || 'B').toUpperCase();
   const mix=['A','B','C'].includes(requestedMix)?requestedMix:'B';
-  const maxUnlockedRank=Math.max(1,Math.min(10,Number(params.get('ranks'))||1));
+  // First-place rankings are the only available layer in this no-account
+  // build. A URL is navigation, not server-verified unlock authority.
+  // Later layers require the future authoritative progression integration.
+  const maxUnlockedRank=1;
   const gehMode=areaPreset?.geh===true || params.get('geh')==='1' ||
     (!areaPreset && params.get('geh')!=='0' && mix==='B');
   const areaLabel=(zazzlyMode && gehMode) ? 'GRAND EXHIBITION HALL' : (collectionContext ? 'COLLECTION' : (areaPreset?.label || (gehMode?'GRAND EXHIBITION HALL':'VIEWER SAMPLE')));
@@ -394,7 +397,8 @@
   const catSearchEmojiCount=()=>searchedEmojiTokens().length;
   const residentName=params.get('resident') || 'USERNAME OF RESIDENT';
   const searchDetails=params.get('search') || 'DETAILS OF SEARCH';
-  const requestedRank=Math.max(1,Math.min(10,Number(params.get('rank'))||1));
+  // A hand-edited ?rank= cannot claim a prize or bypass unavailable ranks.
+  const requestedRank=gehMode?1:Math.max(1,Math.min(10,Number(params.get('rank'))||1));
   const entranceKind=gehMode?'geh':(
     collectionContext?'collection':
     requestedArea==='gallery'?'gallery':
