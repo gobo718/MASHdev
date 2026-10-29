@@ -24,14 +24,21 @@ function makeElement(tag){
  return el;
 }
 const list=makeElement('section'),status=makeElement('p'),trash=makeElement('button');
+const paradeNav=makeElement('nav'),paradePrev=makeElement('button'),
+ paradeNext=makeElement('button'),paradePosition=makeElement('span');
 const sortButtons=['start_date','last_worked','letter_count','total_time']
  .map(sort=>Object.assign(makeElement('button'),{dataset:{sort}}));
 const viewButtons=['thumbs','parade']
  .map(view=>Object.assign(makeElement('button'),{dataset:{view}}));
+const controls={
+ '#drafts':list,'#drafts-status':status,'[data-trash]':trash,
+ '#parade-navigation':paradeNav,'#parade-prev':paradePrev,
+ '#parade-next':paradeNext,'#parade-position':paradePosition
+};
 globalThis.document={
- querySelector(selector){return {'#drafts':list,'#drafts-status':status,'[data-trash]':trash}[selector];},
+ querySelector(selector){return controls[selector]||null;},
  querySelectorAll(selector){return selector==='[data-sort]'?sortButtons:selector==='[data-view]'?viewButtons:[];},
- createElement:makeElement
+ createElement:makeElement,addEventListener(){}
 };
 let navigatedTo=null;
 globalThis.window={location:{assign(url){navigatedTo=url;}}};
